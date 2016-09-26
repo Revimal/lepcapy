@@ -1,38 +1,87 @@
-# C++ objects and libs
+# This file is used to ignore files which are generated
+# ----------------------------------------------------------------------------
 
-*.slo
-*.lo
-*.o
+*~
+*.autosave
 *.a
-*.la
-*.lai
+*.core
+*.moc
+*.o
+*.obj
+*.orig
+*.rej
 *.so
-*.dll
-*.dylib
-
-# Qt-es
-
+*.so.*
+*_pch.h.cpp
+*_resource.rc
+*.qm
+.#*
+*.*#
+core
+!core/
+tags
+.DS_Store
+.directory
+*.debug
+Makefile*
+*.prl
+*.app
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+Thumbs.db
+*.res
+*.rc
 /.qmake.cache
 /.qmake.stash
-*.pro.user
-*.pro.user.*
-*.qbs.user
-*.qbs.user.*
-*.moc
-moc_*.cpp
-qrc_*.cpp
-ui_*.h
-Makefile*
-*build-*
+*_i.c
+*_p.c
+*_i.h
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
 
-# QtCreator
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 
-*.autosave
+# User-specific files (MonoDevelop/Xamarin Studio)
+*.userprefs
 
-# QtCtreator Qml
-*.qmlproject.user
-*.qmlproject.user.*
+# xemacs temporary files
+*.flc
 
-# QtCtreator CMake
-CMakeLists.txt.user
+# Vim temporary files
+.*.swp
 
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
