@@ -1,4 +1,4 @@
-language: cpp
+language: c
 sudo: required
 dist: trusty
 
@@ -7,8 +7,8 @@ os:
   - osx
 
 compiler:
-  - g++
-  - clang++
+  - gcc
+  - clang
 
 addons:
   apt:
