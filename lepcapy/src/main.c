@@ -1,8 +1,10 @@
 #include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#define PCAP_MAGIC_NUM 0xa1b2c3d4
 
 struct pcap_hdr_s{
-    static const uint32_t MAGIC_NUM = 0xa1b2c3d4;
-
     uint32_t magic_number;   /* magic number */
     uint16_t version_major;  /* major version number */
     uint16_t version_minor;  /* minor version number */
@@ -23,8 +25,8 @@ int main(int argc, char *argv[])
 {
     FILE *fp = NULL;
     size_t pkt_cnt = 0;
-    pcaprec_hdr_s* recHdr = NULL;
-    pcap_hdr_s* pcapHdr = NULL;
+    struct pcaprec_hdr_s* recHdr = NULL;
+    struct pcap_hdr_s* pcapHdr = NULL;
 
     if(argc < 2)
         goto out;
@@ -34,21 +36,21 @@ int main(int argc, char *argv[])
     if(fp == NULL)
         goto out;
 
-    pcapHdr = new pcap_hdr_s;
-    fread(pcapHdr, sizeof(pcap_hdr_s), 1, fp);
+    pcapHdr = (struct pcap_hdr_s*)malloc(sizeof(struct pcap_hdr_s));
+    fread(pcapHdr, sizeof(struct pcap_hdr_s), 1, fp);
 //    fseek(fp, 24, SEEK_SET);
 
-    if(pcapHdr->magic_number != pcapHdr->MAGIC_NUM){
-        std::cout << "Invalid File Format!" << std::endl;
+    if(pcapHdr->magic_number != PCAP_MAGIC_NUM){
+        printf("Invalid File Format!\n");
         goto out;
     }
 
     printf("PCAP Version : %d.%d\n", pcapHdr->version_major, pcapHdr->version_minor);
     printf("Packet Type : %d\n", pcapHdr->network);
 
-    recHdr = new pcaprec_hdr_s;
+    recHdr = (struct pcaprec_hdr_s*)malloc(sizeof(struct pcaprec_hdr_s));
     while(pkt_cnt < 300){
-        fread(recHdr, sizeof(pcaprec_hdr_s), 1, fp);
+        fread(recHdr, sizeof(struct pcaprec_hdr_s), 1, fp);
         pkt_cnt++;
         printf("[No:%08lu : %08u.%06u] Length : %u / %u \n",
                        pkt_cnt, recHdr->tv_sec, recHdr->tv_usec, recHdr->incl_len, recHdr->orig_len);
@@ -57,11 +59,11 @@ int main(int argc, char *argv[])
 
     out:
     if(recHdr != NULL){
-        delete recHdr;
+        free(recHdr);
         recHdr = NULL;
     }
     if(pcapHdr != NULL){
-        delete pcapHdr;
+        free(pcapHdr);
         pcapHdr = NULL;
     }
     return 0;
