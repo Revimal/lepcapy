@@ -1,6 +1,15 @@
 #ifndef LEPCAPY_MACROS_H
 #define LEPCAPY_MACROS_H
 
+/*
+ * Compile Option
+ */
+#define MAX_QUEUE_SIZE 1024
+#define MAX_STACK_SIZE 12
+
+/*
+ * General Macros
+ */
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
     #include <sys/param.h>
 #endif
@@ -43,9 +52,8 @@
 #define E2BIG           8   /* Argument too long */
 #define EMAGIC          9   /* Magic check fault */
 
-
 /*
- * General Macros
+ * General Macro Functions
  */
 #define alloc_type(p_var, d_type)                       \
     (p_var = (d_type *)malloc(sizeof(d_type)))

@@ -17,10 +17,10 @@ struct pcap_parser_s{
     struct pcap_parser_s* prev;
     int layer;
 
-    int (*pcap_parse_encap)(const struct pcaprec_data_s* src_data);
-    int (*pcap_parse_decap)(const struct pcaprec_data_s* src_data);
-    int (*pcap_parse_to_strc)(const struct pcaprec_data_s* src_data,void** proto_hdr);
-    int (*pcap_parse_from_strc)(const struct pcaprec_data_s* src_data ,void** proto_hdr);
+    int (*pcap_parse_encap)(const struct pcaprec_data_s** src_data);
+    int (*pcap_parse_decap)(const struct pcaprec_data_s** src_data);
+    int (*pcap_parse_to_strc)(const struct pcaprec_data_s** src_data,void** proto_hdr);
+    int (*pcap_parse_from_strc)(const struct pcaprec_data_s** src_data ,void** proto_hdr);
 };
 
 /*

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int load_pcap_format(const FILE** fp, struct pcap_hdr_s** p_pcap_hdr){
+int load_pcap_format(FILE **fp, struct pcap_hdr_s **p_pcap_hdr){
     if(*p_pcap_hdr || !fp)
         return -EINVAL;
 

@@ -8,11 +8,12 @@
 
 int main(int argc, char *argv[])
 {
-    unsigned char err_code = 0;
+    int err_code = SUCCESS;
     FILE *fp = NULL;
     size_t pkt_cnt = 0;
-    struct pcaprec_hdr_s* arr_rec_hdr = NULL;
-    struct pcap_hdr_s* p_pcap_hdr = NULL;
+    struct pcaprec_hdr_s *p_rec_hdr = NULL;
+    pcaprec_data *p_rec_data = NULL;
+    struct pcap_hdr_s *p_pcap_hdr = NULL;
 
     if(argc < 2)
         return err_code = -EINVAL;
@@ -27,17 +28,24 @@ int main(int argc, char *argv[])
     printf("PCAP Version : %d.%d\n", p_pcap_hdr->version_major, p_pcap_hdr->version_minor);
     printf("Packet Type : %d\n", p_pcap_hdr->network);
 
-    while(pkt_cnt < 300){
+    while(1){
+        err_code = load_pcap_record(&fp, &p_rec_hdr, &p_rec_data);
+        if(err_code && err_code != -EFIO)
+            goto out;
+        if(err_code == -EFIO){
+            err_code = SUCCESS;
+            break;
+        }
+
         pkt_cnt++;
-        load_pcap_rechdr(&fp, &arr_rec_hdr);
         printf("[No:%08lu : %08u.%06u] Length : %u / %u \n",
-            pkt_cnt, arr_rec_hdr->tv_sec, arr_rec_hdr->tv_usec,
-            arr_rec_hdr->incl_len, arr_rec_hdr->orig_len);
+            pkt_cnt, p_rec_hdr->tv_sec, p_rec_hdr->tv_usec,
+            p_rec_hdr->inc_len, p_rec_hdr->orig_len);
     }
 
     out:
-    free_ptr(arr_rec_hdr);
-    free_ptr(arr_rec_hdr);
+    free_ptr(p_rec_hdr);
+    free_ptr(p_pcap_hdr);
     fclose(fp);
     return err_code;
 }
