@@ -6,13 +6,17 @@
 #include <stdio.h>
 #include <stdint.h>
 
-struct ethernetII_struct{
-    unsigned char ether_dest[6];
-    unsigned char ether_src[6];
-    uint16_t ether_type;
-    uint32_t ether_chksum;
+#include <net/ethernet.h>
+
+struct ethernetII_layer_s{
+    struct ether_header* eth_header;
 };
 
-extern struct pcap_parser_s ethernetII_struct;
+extern struct pcap_parser_s ethernetII_operation;
+
+int ethernetII_queue_decap(struct queue_node_s* src_queue, struct ethernetII_layer_s* dest_layer);
+int ethernetII_idx_decap(uint32_t src_idx, struct ethernetII_layer_s* dest_layer);
+void ViewMac(unsigned char *mac);
+unsigned short ntohs(unsigned short value);
 
 #endif // LEPCAPY_ETHERNETII_H

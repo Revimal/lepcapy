@@ -5,7 +5,8 @@
  * Compile Option
  */
 #define MAX_QUEUE_SIZE 1024
-#define MAX_STACK_SIZE 12
+#define NETIO_QUEUING_SIZE 256
+#define NETIO_QUEING_WARN 64
 
 /*
  * General Macros
@@ -51,6 +52,8 @@
 #define EINVAL          7   /* Invalid arguments */
 #define E2BIG           8   /* Argument too long */
 #define EMAGIC          9   /* Magic check fault */
+#define EQUEUE          10  /* Record queue fault */
+#define ETHREAD         11  /* Threading fault */
 
 /*
  * General Macro Functions
