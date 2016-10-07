@@ -11,10 +11,11 @@
 #if (defined(__APPLE__) && defined(__MACH__))
     #include <libkern/OSAtomic.h>
     #define pthread_spinlock_t OSSpinLock
-    #define pthread_spin_lock(spinlock)     \
+    #define pthread_spin_lock(spinlock)         \
         OSSpinLockLock(get_queue_spinlock())
-    #define pthread_spin_unlock(spinlock)   \
+    #define pthread_spin_unlock(spinlock)       \
         OSSpinLockUnlock(get_queue_spinlock())
+    #define pthread_spin_init(spinlock, mode)   0
 #endif
 
 #define queue_current_size()                \
