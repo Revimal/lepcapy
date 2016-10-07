@@ -26,6 +26,10 @@ int load_pcap_format(FILE **fp, struct pcap_hdr_s *p_pcap_hdr){
     return SUCCESS;
 }
 
-//int thread_file_record_io(FILE **fp){
+int thread_file_record_io(FILE **fp){
 
-//}
+}
+
+int thread_network_record_io(){
+
+}

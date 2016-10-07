@@ -5,7 +5,7 @@
 
 //int ethernetII_parse_decap()
 
-unsigned short ntohs(unsigned short value)
+unsigned short ether_ntohs(unsigned short value)
 {
         return(value << 8) | (value >> 8);
 }
@@ -53,6 +53,6 @@ int ethernetII_idx_decap(uint32_t src_idx, struct ethernetII_layer_s* dest_layer
 //    ViewMac(etherheader->ether_src);
 //    printf("\nDest : 0x");
 //    ViewMac(etherheader->ether_dest);
-//    printf("\nProtocol : %#x\n", ntohs(etherheader->ether_type));
+//    printf("\nProtocol : %#x\n", ether_ntohs(etherheader->ether_type));
 //    return 0;
 //}

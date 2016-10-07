@@ -8,6 +8,15 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#if (defined(__APPLE__) && defined(__MACH__))
+    #include <libkern/OSAtomic.h>
+    #define pthread_spinlock_t OSSpinLock
+    #define pthread_spin_lock(spinlock)     \
+        OSSpinLockLock(get_queue_spinlock())
+    #define pthread_spin_unlock(spinlock)   \
+        OSSpinLockUnlock(get_queue_spinlock())
+#endif
+
 #define queue_current_size()                \
     (queue_list.tail > queue_list.head ? queue_list.tail - queue_list.head : queue_list.head - queue_list.tail)
 

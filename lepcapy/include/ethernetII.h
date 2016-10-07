@@ -17,6 +17,6 @@ extern struct pcap_parser_s ethernetII_operation;
 int ethernetII_queue_decap(struct queue_node_s* src_queue, struct ethernetII_layer_s* dest_layer);
 int ethernetII_idx_decap(uint32_t src_idx, struct ethernetII_layer_s* dest_layer);
 void ViewMac(unsigned char *mac);
-unsigned short ntohs(unsigned short value);
+unsigned short ether_ntohs(unsigned short value);
 
 #endif // LEPCAPY_ETHERNETII_H

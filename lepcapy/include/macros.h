@@ -35,8 +35,8 @@
     #define LEPCAPY_DEPRECATED(func) func __attribute__ ((deprecated))
     #define LEPCAPY_LFUNC inline
     #define LEPCAPY_NOEXCEPT noexcept
-    #define LEPCAPY_EXPECT_T(x) __builtin_expect((x), 1)
-    #define LEPCAPY_EXPECT_F(x) __builtin_expect((x), 0)
+    #define LEPCAPY_EXPECT_T(x) __builtin_expect(!!(x), 1)
+    #define LEPCAPY_EXPECT_F(x) __builtin_expect(!!(x), 0)
 #endif
 
 /*

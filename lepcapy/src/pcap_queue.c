@@ -78,7 +78,7 @@ int queue_dequeue_net_io(){
     ViewMac(test.eth_header->ether_shost);
     printf("\n[Dest]\t");
     ViewMac(test.eth_header->ether_dhost);
-    printf("\n[Type]\t%#2x\n\n", ntohs(test.eth_header->ether_type));
+    printf("\n[Type]\t%#2x\n\n", ether_ntohs(test.eth_header->ether_type));
 
     lock_queue_spinlock();
     free_ptr(queue_elem_head().pcaprec_buf);
