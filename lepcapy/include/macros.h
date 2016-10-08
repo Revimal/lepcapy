@@ -4,8 +4,8 @@
 /*
  * Compile Option
  */
-#define MAX_QUEUE_SIZE 1024
-#define NETIO_QUEUING_SIZE 256
+#define MAX_QUEUE_SIZE 4096
+#define NETIO_QUEUING_SIZE 1024
 #define NETIO_QUEING_WARN 64
 
 /*
@@ -17,6 +17,7 @@
 
 #ifdef _MSC_VER
     #define LEPCAPY_DEBUG
+    #define LEPCAPY_EXPLICIT
     #define LEPCAPY_SECTION(name)
     #define LEPCAPY_ALIGN(size) __declspec(align (size))
     #define LEPCAPY_PACK_DEF __pragma(pack(push, 1))
@@ -28,6 +29,7 @@
     #define LEPCAPY_EXPECT_F(x)
 #else
     #define LEPCAPY_DEBUG __attribute__ ((unused))
+    #define LEPCAPY_EXPLICIT __attribute__ ((used))
     #define LEPCAPY_SECTION(name) __attribute__ ((section (name)))
     #define LEPCAPY_ALIGN(size) __attribute__ ((aligned (size)))
             #define LEPCAPY_PACK_DEF
@@ -35,8 +37,8 @@
     #define LEPCAPY_DEPRECATED(func) func __attribute__ ((deprecated))
     #define LEPCAPY_LFUNC inline
     #define LEPCAPY_NOEXCEPT noexcept
-    #define LEPCAPY_EXPECT_T(x) __builtin_expect(!!(x), 1)
-    #define LEPCAPY_EXPECT_F(x) __builtin_expect(!!(x), 0)
+    #define LEPCAPY_EXPECT_T(x) __builtin_expect((x), 1)
+    #define LEPCAPY_EXPECT_F(x) __builtin_expect((x), 0)
 #endif
 
 /*

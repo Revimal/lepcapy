@@ -9,7 +9,6 @@
 struct queue_list_s queue_list = {
     head : 0,
     tail : 0,
-    parse_cnt : 0,
 };
 
 int queue_init(){
@@ -68,17 +67,19 @@ int queue_dequeue_net_io(){
     unlock_queue_spinlock();
 
     printf("Current Queue Size : %u\n", queue_current_size());
-    printf("[No:%08lu : %08u.%06u] Length : %u / %u \n",
+    printf("[No:%08u : %08u.%06u] Length : %u / %u \n",
         queue_list.head + 1, queue_elem_head().pcaprec_info.tv_sec,
         queue_elem_head().pcaprec_info.tv_usec,
         queue_elem_head().pcaprec_info.inc_len,
         queue_elem_head().pcaprec_info.orig_len);
-    ethernetII_operation.parse_queue_decap(&queue_elem_head(), PROTO_LAYER(&test));
-    printf("[Src]\t");
-    ViewMac(test.eth_header->ether_shost);
-    printf("\n[Dest]\t");
-    ViewMac(test.eth_header->ether_dhost);
-    printf("\n[Type]\t%#2x\n\n", ether_ntohs(test.eth_header->ether_type));
+    err_code = ethernetII_operation.parse_queue_decap(&queue_elem_head(), PROTO_LAYER(&test));
+    if(err_code)
+        return err_code;
+//    printf("[Src]\t");
+//    ViewMac(test.eth_header->ether_shost);
+//    printf("\n[Dest]\t");
+//    ViewMac(test.eth_header->ether_dhost);
+//    printf("\n[Type]\t%#2x\n\n", ether_ntohs(test.eth_header->ether_type));
 
     lock_queue_spinlock();
     free_ptr(queue_elem_head().pcaprec_buf);

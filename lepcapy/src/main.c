@@ -7,15 +7,22 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+//unsigned long diff(struct timespec start, struct timespec end)
+//{
+//        if ((end.tv_nsec - start.tv_nsec) < 0)
+//                return 1000000000 + end.tv_nsec - start.tv_nsec;
+//        else
+//                return end.tv_nsec - start.tv_nsec;
+//}
+
 int main(int argc, char *argv[])
 {
+//    struct timespec tspec1, tspec2;
+    unsigned long ret_thread = SUCCESS;
     int err_code = SUCCESS;
     FILE *fp = NULL;
-    size_t pkt_cnt = 0;
-//    struct pcaprec_hdr_s p_rec_hdr;
-//    pcaprec_data *p_rec_data = NULL;
     struct pcap_hdr_s p_pcap_hdr;
-    struct ethernetII_layer_s test;
+    pthread_t file_io_thread;
 
     if(argc < 2)
         return err_code = -EINVAL;
@@ -31,37 +38,35 @@ int main(int argc, char *argv[])
     printf("Packet Type : %d\n", p_pcap_hdr.network);
 
     queue_init();
+//    clock_gettime(CLOCK_MONOTONIC, &tspec1);
+    io_thread = 1;
+    pthread_create(&file_io_thread, NULL, &thread_file_record_io, (void *)&fp);
 
-    while(1){        
-        err_code = queue_enqueue_file_io(&fp);
-        if(err_code && err_code != -EFIO && err_code != -EQUEUE)
-            goto out;
-        if(err_code == -EQUEUE || err_code == -EFIO){
-            err_code = SUCCESS;
-            break;
-        }
-
+    while(1){
+//        err_code = queue_enqueue_file_io(&fp);
+//        if(err_code && err_code != -EFIO)
+//            goto out;
+//        if(err_code == -EFIO){
+//            err_code = SUCCESS;
+//            break;
+//        }
         err_code = queue_dequeue_net_io();
-        if(err_code)
-            goto out;
-//        printf("Current Queue Size : %u\n", queue_current_size());
-//        printf("[No:%08lu : %08u.%06u] Length : %u / %u \n",
-//            pkt_cnt + 1, queue_elem(pkt_cnt).pcaprec_info.tv_sec,
-//            queue_elem(pkt_cnt).pcaprec_info.tv_usec,
-//            queue_elem(pkt_cnt).pcaprec_info.inc_len,
-//            queue_elem(pkt_cnt).pcaprec_info.orig_len);
-//        ethernetII_operation.parse_queue_decap(&queue_elem(pkt_cnt), PROTO_LAYER(&test));
-//        printf("[Src]\t");
-//        ViewMac(test.eth_header->ether_shost);
-//        printf("\n[Dest]\t");
-//        ViewMac(test.eth_header->ether_dhost);
-//        printf("\n[Type]\t%#2x\n\n", ntohs(test.eth_header->ether_type));
-////        ethernetII_operation.parse_buf_decap_ptr(queue_elem(pkt_cnt).pcaprec_buf);
-//        pkt_cnt++;
+        if(err_code){
+            sleep(0);
+            if(LEPCAPY_EXPECT_F(io_thread == 0))
+                break;
+        }
+//        if(err_code)
+//            goto out;
     }
+    pthread_join(file_io_thread, (void **)ret_thread);
+    err_code = (int)ret_thread;
+
 
     out:
-//    free_ptr(p_rec_data);
     fclose(fp);
+
+//    clock_gettime(CLOCK_MONOTONIC, &tspec2);
+//    printf("Elapsed Time : %luns\n", diff(tspec1, tspec2));
     return err_code;
 }

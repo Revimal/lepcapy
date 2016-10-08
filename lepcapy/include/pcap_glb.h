@@ -18,6 +18,9 @@ struct pcap_hdr_s{
     uint32_t network;        /* data link type */
 };
 
-int load_pcap_format(FILE **fp, struct pcap_hdr_s *p_pcap_hdr);
+int io_thread;
 
+int load_pcap_format(FILE **fp, struct pcap_hdr_s *p_pcap_hdr);
+void *thread_file_record_io(void *file_ptr);
+//void* thread_network_record_io(LEPCAPY_DEBUG void *arg);
 #endif // LEPCAPY_PCAP_GLB_H

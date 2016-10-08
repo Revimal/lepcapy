@@ -27,7 +27,7 @@ struct pcap_parser_s ethernetII_operation = {
     parse_idx_decap     :   ethernetII_idx_decap,
 };
 
-int ethernetII_queue_decap(struct queue_node_s* src_queue, struct ethernetII_layer_s* dest_layer){
+LEPCAPY_EXPLICIT int ethernetII_queue_decap(struct queue_node_s* src_queue, struct ethernetII_layer_s* dest_layer){
     if(src_queue->tail - src_queue->head < sizeof(struct ether_header))
         return -EINVAL;
 
@@ -36,7 +36,7 @@ int ethernetII_queue_decap(struct queue_node_s* src_queue, struct ethernetII_lay
     return SUCCESS;
 }
 
-int ethernetII_idx_decap(uint32_t src_idx, struct ethernetII_layer_s* dest_layer){
+LEPCAPY_EXPLICIT int ethernetII_idx_decap(uint32_t src_idx, struct ethernetII_layer_s* dest_layer){
     struct queue_node_s* ptr_queue = &queue_elem(src_idx);
     if(ptr_queue->tail - ptr_queue->head < sizeof(struct ether_header))
         return -EINVAL;
