@@ -1,10 +1,8 @@
 #ifndef LEPCAPY_ETHERNETII_H
 #define LEPCAPY_ETHERNETII_H
 
-#include "pcap_parser.h"
-
-#include <stdio.h>
-#include <stdint.h>
+#include "macros.h"
+#include "protocol/proto_base.h"
 
 #include <net/ethernet.h>
 

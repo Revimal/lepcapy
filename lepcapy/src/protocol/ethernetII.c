@@ -1,26 +1,26 @@
 #include "macros.h"
-#include "pcap_parser.h"
-#include "pcap_queue.h"
-#include "ethernetII.h"
+#include "parser_ctrl.h"
+
+#include "protocol/ethernetII.h"
 
 //int ethernetII_parse_decap()
 
-unsigned short ether_ntohs(unsigned short value)
-{
-        return(value << 8) | (value >> 8);
-}
+//unsigned short ether_ntohs(unsigned short value)
+//{
+//        return(value << 8) | (value >> 8);
+//}
 
-void ViewMac(unsigned char *mac)
-{
-        int i;
-        for (i = 0;i < 6; ++i)
-        {
-            if(i<5)
-               printf("%02x:", mac[i]);
-            else
-               printf("%02x", mac[i]);
-        }
-}
+//void ViewMac(unsigned char *mac)
+//{
+//        int i;
+//        for (i = 0;i < 6; ++i)
+//        {
+//            if(i<5)
+//               printf("%02x:", mac[i]);
+//            else
+//               printf("%02x", mac[i]);
+//        }
+//}
 
 struct pcap_parser_s ethernetII_operation = {
     parse_queue_decap   :   ethernetII_queue_decap,

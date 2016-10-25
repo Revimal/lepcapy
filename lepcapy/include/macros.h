@@ -2,6 +2,12 @@
 #define LEPCAPY_MACROS_H
 
 /*
+ * Gloabal Dependencies
+ */
+#include <stdint.h>
+#include <stdlib.h>
+
+/*
  * Compile Option
  */
 #define MAX_QUEUE_SIZE 4096
@@ -56,6 +62,7 @@
 #define EMAGIC          9   /* Magic check fault */
 #define EQUEUE          10  /* Record queue fault */
 #define ETHREAD         11  /* Threading fault */
+#define EOVRFLW         12  /* Overflow fault */
 
 /*
  * General Macro Functions
