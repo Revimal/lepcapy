@@ -36,7 +36,6 @@
 #define queue_elem(queue_cnt)               \
     (queue_list.queue_buf[queue_cnt])
 
-
 /*
  * Deprecated!!!
  */
@@ -44,10 +43,8 @@
     (queue_elem(queue_list.head))
 
 #define queue_elem_tail()                   \
-(queue_elem(queue_list.tail))
-/*
- *
- */
+    (queue_elem(queue_list.tail))
+//
 
 #define get_queue_spinlock() (&(queue_list.queue_spinlock))
 #define lock_queue_spinlock() pthread_spin_lock(get_queue_spinlock())

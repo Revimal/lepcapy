@@ -29,7 +29,7 @@ int __thread_file_enqueue(FILE *fp);
  * File I/O Functions
  */
 int __file_io_init(FILE *fp);
-int __file_io_read(FILE *fp);
+int __file_io_read(FILE *fp, struct queue_node_s*);
 
 /*
  * Protocol Parsing Functions

@@ -15,7 +15,7 @@ int thread_file_io(FILE *fp){
 
 int thread_file_join(){
     unsigned long ret_thread = SUCCESS;
-    pthread_join(p_thread, (void **)ret_thread);
+    pthread_join(p_thread, (void **)&ret_thread);
     return (int)ret_thread;
 }
 
@@ -42,6 +42,7 @@ int __thread_file_enqueue(FILE *fp){
      */
 
     int err_code = SUCCESS;
+    struct queue_node_s tmp_node = {0,};
 
     if(!fp)
         return -EINVAL;
@@ -53,13 +54,14 @@ int __thread_file_enqueue(FILE *fp){
     }
     unlock_queue_spinlock();
 
-    if((err_code = __file_io_read(fp)))
+    if((err_code = __file_io_read(fp, &tmp_node)))
         return err_code;
 
 //    if((err_code = proto_parse_seq()))
 //        return err_code;
 
     lock_queue_spinlock();
+    queue_elem_tail() = tmp_node;
     queue_list.tail = queue_round_tail(queue_list.tail + 1);
     unlock_queue_spinlock();
     return err_code;
@@ -88,19 +90,19 @@ int __file_io_init(FILE *fp){
     return err_code;
 }
 
-int __file_io_read(FILE *fp){
+int __file_io_read(FILE *fp, struct queue_node_s* tmp_node){
     int err_code = SUCCESS;
     unsigned char *temp_ptr = NULL;
 
     if((err_code = load_pcap_record(fp,
-            &(queue_elem_tail().pcaprec_info),
-            &(queue_elem_tail().pcaprec_buf), queue_list.max_len)))
+            &(tmp_node->pcaprec_info),
+            &(tmp_node->pcaprec_buf), queue_list.max_len)))
         return err_code;
 
-    temp_ptr = queue_elem_tail().pcaprec_buf;
-    queue_elem_tail().head = temp_ptr;
-    temp_ptr += queue_elem_tail().pcaprec_info.inc_len;
-    queue_elem_tail().tail = temp_ptr;
+    temp_ptr = tmp_node->pcaprec_buf;
+    tmp_node->head = temp_ptr;
+    temp_ptr += tmp_node->pcaprec_info.inc_len;
+    tmp_node->tail = temp_ptr;
 
     return err_code;
 }

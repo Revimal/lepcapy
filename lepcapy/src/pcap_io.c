@@ -3,7 +3,7 @@
 /*
  *
  * TODO : Buffer Overflow Check
- * -    Complete (2016/10/25)
+ * - Complete (2016/10/25)
  *
  */
 
@@ -26,7 +26,7 @@ int load_pcap_record(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, pcaprec_data
     if((err_code = load_pcap_rechdr_pure(fp, p_pcap_rechdr)))
         return err_code;
 
-    if(p_pcap_rechdr->inc_len > max_len){
+    if(p_pcap_rechdr->inc_len > max_len * 8){
         err_code = -EOVRFLW;
         goto out;
     }
@@ -44,11 +44,11 @@ int load_pcap_record(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, pcaprec_data
 
 int load_pcap_rechdr(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, uint32_t max_len){
     int err_code = SUCCESS;
-    \
+
     if((err_code = load_pcap_rechdr_pure(fp, p_pcap_rechdr)))
         return err_code;
 
-    if(p_pcap_rechdr->inc_len > max_len)
+    if(p_pcap_rechdr->inc_len > max_len * 8)
         return -EOVRFLW;
 
     fseek(fp, p_pcap_rechdr->inc_len, SEEK_CUR);
