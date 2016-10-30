@@ -4,6 +4,9 @@ static pthread_t p_thread;
 
 int thread_file_io(FILE *fp){
     int err_code = SUCCESS;
+
+    p_pktm = NULL;
+
     io_interact_flag = 1;
     __file_io_init(fp);
     err_code = pthread_create(&p_thread, NULL, __thread_file_io, (void *)fp);
@@ -15,12 +18,14 @@ int thread_file_io(FILE *fp){
 
 int thread_file_join(){
     unsigned long ret_thread = SUCCESS;
+
     pthread_join(p_thread, (void **)&ret_thread);
     return (int)ret_thread;
 }
 
 void *__thread_file_io(void *file_ptr){
     int err_code = SUCCESS;
+
     while(1){
         err_code = __thread_file_enqueue((FILE*)file_ptr);
 /*        if(err_code == -EQUEUE)
@@ -86,6 +91,10 @@ int __file_io_init(FILE *fp){
 
     queue_list.base_sec = tmp_rechdr.tv_sec;
     queue_list.base_usec = tmp_rechdr.tv_usec;
+
+    //TODO : Add Network Access Layer detection
+    p_pktm = alloc_pktm(p_pktm);
+    ether_operations.pkt_minit(p_pktm, env_pktm.if_name);
 
     return err_code;
 }

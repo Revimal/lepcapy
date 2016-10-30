@@ -10,8 +10,17 @@ int main(int argc, char *argv[])
     FILE *fp = NULL;
     struct pcap_hdr_s p_pcap_hdr;
 
-    if(argc < 2)
+    if(argc < 4){
+        printf("Usage : lepcapy [Dump file] [Interface Name] [IP Address]\n");
         return err_code = -EINVAL;
+    }
+
+    strncpy(env_pktm.if_name, argv[2], IFNAMSIZ - 1);
+    parse_eth_str(argv[3], env_pktm.eth_addr.eth_saddr); //Fix It
+    printf("%p\n", env_pktm.eth_addr.eth_saddr);
+
+    printf("%02X:%02X:%02X:%02X:%02X:%02X\n",
+           env_pktm.eth_addr.eth_saddr[0], env_pktm.eth_addr.eth_saddr[1], env_pktm.eth_addr.eth_saddr[2], env_pktm.eth_addr.eth_saddr[3], env_pktm.eth_addr.eth_saddr[4], env_pktm.eth_addr.eth_saddr[5]);
 
     fp = fopen(argv[1], "rb");
     if(fp == NULL)
@@ -58,6 +67,8 @@ int main(int argc, char *argv[])
     printf("%d\n", thread_file_join());
 
     out:
+    p_pktm->pkt_mexit(p_pktm);
+    free_ptr(p_pktm);
     fclose(fp);
     return err_code;
 }

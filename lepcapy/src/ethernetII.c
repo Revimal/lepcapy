@@ -1,16 +1,16 @@
-#include "protocol/ethernetII.h"
+#include "ethernetII.h"
 
 struct pktm_operation_s ether_operations = {
-    pkt_minit : pktm_ether_init,
-    pkt_mexit : pktm_ether_exit,
+    pktm_ether_init,            //pkt_minit
+    pktm_ether_exit,            //pkt_mexit
 
-    pkt_send : pktm_ether_send,
+    pktm_ether_send,            //pkt_send
 
-    pkt_set_protbuf : pktm_ether_set_etherbuf,
-    pkt_set_proto : pktm_ether_set_proto,
-    pkt_get_addr : pktm_ether_get_naddr,
+    pktm_ether_set_etherbuf,    //pkt_set_protbuf
+    pktm_ether_set_proto,       //pkt_set_proto
+    pktm_ether_get_naddr,       //pkt_get_addr
 
-    pkt_ctl : pktm_dummy_ctrl,
+    NULL,            //pkt_ctl
 };
 
 int pktm_ether_init(struct pktm_object_s * const pktm, char * const if_ifn){
@@ -24,7 +24,7 @@ int pktm_ether_init(struct pktm_object_s * const pktm, char * const if_ifn){
     eth_pktm = ETH_PTR(pktm);
 
     memset(eth_pktm, 0, sizeof(struct pktm_ether_s));
-    eth_pktm->eth_oper = &ether_operations;
+    eth_pktm->eth_mexit = pktm_ether_exit;
 
     if((eth_pktm->sd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1){
         err = -ESOCK;
@@ -66,7 +66,7 @@ void pktm_ether_exit(struct pktm_object_s * const pktm){
     struct pktm_ether_s * eth_pktm = NULL;
 
     if(!pktm)
-        return -EINVAL;
+        return;
 
     eth_pktm = ETH_PTR(pktm);
 
@@ -101,7 +101,7 @@ ssize_t pktm_ether_send(struct pktm_object_s * const pktm, void * dummy){
 }
 
 int pktm_ether_set_etherbuf(struct pktm_object_s * const pktm, uint8_t * const buf, const ssize_t cnt, void *prot_addr){
-    int err = SUCCESS;
+    int err = SUCCESS, i = 0;
     struct pktm_ether_s *eth_pktm = NULL;
     struct netaddr_ether *eth_addr = NULL;
 
@@ -115,7 +115,7 @@ int pktm_ether_set_etherbuf(struct pktm_object_s * const pktm, uint8_t * const b
     if(eth_pktm->eth_buf)
         return -EADDR;
 
-    if(cnt > (int)(ETH_DATA_LEN)))
+    if(cnt > (int)(ETH_DATA_LEN))
         return -EOVRFLW;
 
     eth_pktm->offset = 0;
@@ -145,7 +145,6 @@ int pktm_ether_set_etherbuf(struct pktm_object_s * const pktm, uint8_t * const b
 }
 
 int pktm_ether_set_proto(struct pktm_object_s * const pktm, struct proto_chain_s *u_layer){
-    int err = SUCCESS;
     struct pktm_ether_s *eth_pktm = NULL;
 
     if(!(pktm && u_layer))

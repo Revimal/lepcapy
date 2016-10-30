@@ -1,10 +1,9 @@
 #ifndef LEPCAPY_FILE_IO_CTRL_H
 #define LEPCAPY_FILE_IO_CTRL_H
 
-#include "macros.h"
+#include "proto_ctrl.h"
 #include "pcap_io.h"
 #include "record_queue.h"
-#include "protocol/ethernetII.h"
 
 //  TODO : Split as File I/O & Source Ctrl
 

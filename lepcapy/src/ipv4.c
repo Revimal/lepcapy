@@ -1,14 +1,14 @@
-#include "protocol/ipv4.h"
+#include "ipv4.h"
 
 struct proto_ipv4_obj proto_ipv4 = {0, };
 
 struct proto_chain_s ipv4_chain = {
-    proto_obj : &proto_ipv4,
-    u_layer : NULL,
+    &proto_ipv4,        //proto_obj
+    NULL,               //u_layer
 
-    proto_set_protbuf : ipv4_set_protbuf,
-    proto_set_ulayer : ipv4_set_ulayer,
-    proto_set_addr : ipv4_apply_chain,
+    ipv4_set_protbuf,   //proto_set_protbuf
+    ipv4_set_ulayer,    //proto_set_ulayer
+    ipv4_apply_chain,   //proto_set_addr
 };
 
 int ipv4_set_protbuf(struct proto_chain_s * const protm, uint8_t * const prot_buf){
@@ -34,6 +34,7 @@ int ipv4_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * c
 }
 
 int ipv4_apply_chain(struct proto_chain_s * const protm){
+    int err = SUCCESS;
     struct proto_ipv4_obj *ipv4_protm = NULL;
     struct ip *ipv4_hdr = NULL;
 
@@ -46,5 +47,8 @@ int ipv4_apply_chain(struct proto_chain_s * const protm){
     ipv4_hdr->ip_src = ipv4_protm->saddr;
     ipv4_hdr->ip_dst = ipv4_protm->daddr;
 
-    return SUCCESS;
+    if(protm->u_layer)
+        err = protm->u_layer->proto_apply_chain(protm->u_layer);
+
+    return err;
 }
