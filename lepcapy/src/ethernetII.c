@@ -156,11 +156,11 @@ int pktm_ether_set_proto(struct pktm_object_s * const pktm, struct proto_chain_s
     return SUCCESS;
 }
 
-int pktm_ether_get_naddr(struct pktm_object_s * const pktm, uint8_t * const hwa){
+int pktm_ether_get_naddr(struct pktm_object_s * const pktm, void * const hwa){
     int i = 0;
 
     for(i = 0; i < ETH_ALEN; ++i)
-        hwa[i] = ETH_PTR(pktm)->tx_addr.sll_addr[i];
+        ((uint8_t*)hwa)[i] = ETH_PTR(pktm)->tx_addr.sll_addr[i];
 
     return SUCCESS;
 }

@@ -33,11 +33,11 @@ int main(int argc, char *argv[])
     printf("PCAP Version : %d.%d\n", p_pcap_hdr.version_major, p_pcap_hdr.version_minor);
     printf("Packet Type : %d\n", p_pcap_hdr.network);
 
-
     /*
      * Start of Routine
      */
     queue_init();
+    alloc_pktm(p_pktm);
     thread_file_io(fp);
 
 //    while(1){
@@ -65,8 +65,7 @@ int main(int argc, char *argv[])
     err_code = thread_file_join();
 
     out:
-    p_pktm->pkt_mexit(p_pktm);
-    free_ptr(p_pktm);
+    free_pktm(p_pktm);
     fclose(fp);
     return err_code;
 }

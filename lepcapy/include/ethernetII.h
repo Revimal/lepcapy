@@ -40,6 +40,6 @@ void pktm_ether_exit(struct pktm_object_s * const pktm);
 ssize_t pktm_ether_send(struct pktm_object_s * const pktm, void * dummy);
 int pktm_ether_set_etherbuf(struct pktm_object_s * const pktm, uint8_t * const buf, const ssize_t cnt, void *prot_addr);
 int pktm_ether_set_proto(struct pktm_object_s * const pktm, struct proto_chain_s *u_layer);
-int pktm_ether_get_naddr(struct pktm_object_s * const pktm, uint8_t * const hwa);
+int pktm_ether_get_naddr(struct pktm_object_s * const pktm, void * const hwa);
 
 #endif // LEPCAPY_ETHERNETII_H

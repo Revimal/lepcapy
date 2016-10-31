@@ -5,7 +5,8 @@ static pthread_t p_thread;
 int thread_file_io(FILE *fp){
     int err_code = SUCCESS;
 
-    p_pktm = NULL;
+    if(p_pktm == NULL)
+        return -ENULL;
 
     io_interact_flag = 1;
     __file_io_init(fp);
@@ -93,7 +94,6 @@ int __file_io_init(FILE *fp){
     queue_list.base_usec = tmp_rechdr.tv_usec;
 
     //TODO : Add Network Access Layer detection
-    p_pktm = alloc_pktm(p_pktm);
     ether_operations.pkt_minit(p_pktm, env_pktm.if_name);
 
     return err_code;

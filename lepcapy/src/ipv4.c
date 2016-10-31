@@ -42,7 +42,7 @@ int ipv4_apply_chain(struct proto_chain_s * const protm){
         return -ECHAIN;
 
     ipv4_protm = IPV4_PTR(protm->proto_obj);
-    ipv4_hdr = ipv4_protm->ipv4_buf;
+    ipv4_hdr = (struct ip*)(ipv4_protm->ipv4_buf);
 
     ipv4_hdr->ip_src = ipv4_protm->saddr;
     ipv4_hdr->ip_dst = ipv4_protm->daddr;

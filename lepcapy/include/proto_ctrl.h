@@ -5,6 +5,20 @@
 #include "ethernetII.h"
 #include "ipv4.h"
 
+#define alloc_pktm(pktm)                       \
+    (pktm = (struct pktm_object_s *)calloc(1, sizeof(struct pktm_object_s)))
+
+#define free_pktm(pktm)                                 \
+    do{                                                 \
+        if(pktm->pkt_mexit)                             \
+            pktm->pkt_mexit(pktm);                      \
+                                                        \
+        if(pktm != NULL){                               \
+                free(pktm);                             \
+                pktm = NULL;                           \
+        }                                               \
+    }while(0)
+
 struct proto_env{
     char if_name[IFNAMSIZ];
     struct netaddr_ether eth_addr;
