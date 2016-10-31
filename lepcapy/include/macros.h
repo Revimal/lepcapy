@@ -67,6 +67,7 @@
 #define ESOCK           14  /* Socket Error */
 #define EINVPF          15  /* Invalid | Non-support protocol features */
 #define ECHAIN          16  /* Error on protocol chaining */
+#define EPMINIT         17  /* Initialize error on pktm */
 
 /*
  * General Macro Functions

@@ -1,7 +1,7 @@
 #ifndef LEPCAPY_FILE_IO_CTRL_H
 #define LEPCAPY_FILE_IO_CTRL_H
 
-#include "proto_ctrl.h"
+#include "trans_ctrl.h"
 #include "pcap_io.h"
 #include "record_queue.h"
 

@@ -2,8 +2,9 @@
 #define LEPCAPY_PROTO_CTRL_H
 
 #include "macros.h"
-#include "ethernetII.h"
-#include "ipv4.h"
+#include "pktm_ethernetII.h"
+#include "proto_ethernetII.h"
+#include "proto_ipv4.h"
 
 #define alloc_pktm(pktm)                       \
     (pktm = (struct pktm_object_s *)calloc(1, sizeof(struct pktm_object_s)))

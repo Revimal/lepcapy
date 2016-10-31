@@ -8,12 +8,16 @@ int thread_file_io(FILE *fp){
     if(p_pktm == NULL)
         return -ENULL;
 
-    io_interact_flag = 1;
     __file_io_init(fp);
-    err_code = pthread_create(&p_thread, NULL, __thread_file_io, (void *)fp);
-//    while(queue_current_size() < NETIO_QUEUING_SIZE){
-//        sleep(0);
-//    }
+    if((err_code = pthread_create(&p_thread, NULL, __thread_file_io, (void *)fp)))
+        goto err;
+
+    while(queue_current_size() < NETIO_QUEUING_SIZE){
+        sleep(0);
+    }
+
+    io_interact_flag = 1;
+    err:
     return err_code;
 }
 
@@ -94,8 +98,14 @@ int __file_io_init(FILE *fp){
     queue_list.base_usec = tmp_rechdr.tv_usec;
 
     //TODO : Add Network Access Layer detection
-    ether_operations.pkt_minit(p_pktm, env_pktm.if_name);
+    if((err_code = ether_operations.pkt_minit(p_pktm, env_pktm.if_name)))
+        goto err;
+    if((err_code = ether_operations.pkt_get_naddr(p_pktm, env_pktm.eth_addr.eth_saddr)))
+        goto err;
+    if((err_code = ether_operations.pkt_get_iaddr(p_pktm, &(env_pktm.src_ip))))
+        goto err;
 
+    err:
     return err_code;
 }
 
