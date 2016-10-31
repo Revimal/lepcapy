@@ -4,13 +4,29 @@
 #include "macros.h"
 
 #include <arpa/inet.h>
-#include <linux/if_packet.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <net/if.h>
 #include <unistd.h>
+
+/*
+ * Support OSX
+ */
+#if (defined(__APPLE__) && defined(__MACH__))
+    struct sockaddr_ll {
+        unsigned short	sll_family;
+        __be16		sll_protocol;
+        int		sll_ifindex;
+        unsigned short	sll_hatype;
+        unsigned char	sll_pkttype;
+        unsigned char	sll_halen;
+        unsigned char	sll_addr[8];
+    };
+#else
+    #include <linux/if_packet.h>
+#endif
 
 #define PKTM_CTL_GSOCK  0   /* Get socket */
 #define PKTM_CTL_GOFFS  1   /* Get offset */
