@@ -3,13 +3,11 @@
 
 #include <arpa/inet.h>
 #include <linux/if_packet.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <net/if.h>
 #include <unistd.h>
-
 
 #define PKTM_CTL_GSOCK  0   /* Get socket */
 #define PKTM_CTL_GOFFS  1   /* Get offset */
@@ -19,6 +17,23 @@
 #define PKTM_CTL_GTXAD  5   /* Get transmix address */
 #define PKTM_CTL_GPROT  6   /* Get protocol type */
 
+#define alloc_pktm(pktm)                                                            \
+    do{                                                                             \
+        pktm = (struct pktm_object_s *)calloc(1, sizeof(struct pktm_object_s));     \
+        pktm->__init = 0;                                                             \
+    }while(0)
+
+#define free_pktm(pktm)                                 \
+    do{                                                 \
+        if(pktm->__init)                                  \
+            pktm->__pkt_mexit(pktm);                      \
+                                                        \
+        if(pktm != NULL){                               \
+                free(pktm);                             \
+                pktm = NULL;                           \
+        }                                               \
+    }while(0)
+
 #define PKTM_OBJ(pktm_proto)                            \
     ((struct pktm_object_s)pktm_proto)
 
@@ -26,11 +41,11 @@
     ((struct pktm_object_s *)pktm_proto)
 
 struct pktm_object_s{
-    void (*pkt_mexit)(struct pktm_object_s * const pktm);
+    void (*__pkt_mexit)(struct pktm_object_s * const pktm);
 
-    int init;
-    char if_name[IFNAMSIZ];
-    int sd;
+    int __init;
+    char __if_name[IFNAMSIZ];
+    int __sd;
 //    int offset;
 
 //    uint8_t* proto_buf;
@@ -38,7 +53,7 @@ struct pktm_object_s{
 //    void *proto_hdr;
 //    uint8_t* proto_payload;
 
-    struct sockaddr_ll tx_addr;
+    struct sockaddr_ll __tx_addr;
 };
 
 struct pktm_operation_s{

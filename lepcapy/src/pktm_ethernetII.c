@@ -23,10 +23,10 @@ int pktm_ether_init(struct pktm_object_s * const pktm, char * const if_ifn){
     if(!pktm)
         return -EINVAL;
 
-    if(pktm->init)
+    if(pktm->__init)
         return -EPMINIT;
 
-    pktm->init = 0;
+    pktm->__init = 0;
     eth_pktm = PKTM_ETH_PTR(pktm);
     eth_pktm->eth_mexit = pktm_ether_exit;
 
@@ -56,7 +56,7 @@ int pktm_ether_init(struct pktm_object_s * const pktm, char * const if_ifn){
         eth_pktm->tx_addr.sll_addr[i] = ifobj.ifr_ifru.ifru_addr.sa_data[i];
     eth_pktm->tx_addr.sll_halen = ETH_ALEN;
 
-    pktm->init = 1;
+    pktm->__init = 1;
     goto success;
 
 err:
@@ -75,10 +75,10 @@ void pktm_ether_exit(struct pktm_object_s * const pktm){
     if(!pktm)
         return;
 
-    if(!(pktm->init))
+    if(!(pktm->__init))
         return;
 
-    pktm->init = 0;
+    pktm->__init = 0;
 
     eth_pktm = PKTM_ETH_PTR(pktm);
 
@@ -94,7 +94,7 @@ ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_
     if(!(pktm && prot_buf && prot_len))
         return -EINVAL;
 
-    if(!(pktm->init))
+    if(!(pktm->__init))
         return -EPMINIT;
 
     eth_pktm = PKTM_ETH_PTR(pktm);
@@ -117,7 +117,7 @@ ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_
 //    if(!(pktm && prot_addr))
 //        return -EINVAL;
 
-//    if(!(pktm->init))
+//    if(!(pktm->__init))
 //        return -EPMINIT;
 
 //    eth_pktm = ETH_PTR(pktm);
@@ -153,7 +153,7 @@ int pktm_ether_get_naddr(struct pktm_object_s * const pktm, void * const hwa){
     if(!(pktm && hwa))
         return -EINVAL;
 
-    if(!(pktm->init))
+    if(!(pktm->__init))
         return -EPMINIT;
 
     for(i = 0; i < ETH_ALEN; ++i)
@@ -170,7 +170,7 @@ int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const ipa){
     if(!(pktm && ipa))
         return -EINVAL;
 
-    if(!(pktm->init))
+    if(!(pktm->__init))
         return -EPMINIT;
 
     eth_pktm = PKTM_ETH_PTR(pktm);
@@ -196,7 +196,7 @@ int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const ipa){
 //    if(!(pktm && p_ethbuf))
 //        return -EINVAL;
 
-//    if(!(pktm->init))
+//    if(!(pktm->__init))
 //        return -EPMINIT;
 
 //    eth_pktm = ETH_PTR(pktm);
@@ -211,7 +211,7 @@ int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const ipa){
 //    if(!(pktm && p_ethbuf))
 //        return -EINVAL;
 
-//    if(!(pktm->init))
+//    if(!(pktm->__init))
 //        return -EPMINIT;
 
 //    eth_pktm = ETH_PTR(pktm);

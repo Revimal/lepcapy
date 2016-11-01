@@ -67,6 +67,7 @@
 #define ESOCK           14  /* Socket Error */
 #define EINVPF          15  /* Invalid | Non-support protocol features */
 #define EPMINIT         16  /* Initialize error on pktm */
+#define __EDROP         17  /* Dropped packet */
 
 /*
  * General Macro Functions

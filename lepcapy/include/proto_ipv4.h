@@ -17,11 +17,11 @@ struct proto_ipv4{
 #define IPV4_PTR(pktm_proto)                            \
     ((struct proto_ipv4 *)pktm_proto)
 
-extern struct proto_ipv4 obj_ipv4; //For change IPv4 header
 extern struct proto_chain_s ipv4_chain; //For protocol chaining call
+extern int ipv4_parse_str(char *ip_str, struct in_addr *dst_ptr);
+extern int ipv4_get_uptype(uint8_t * const ipv4_buf, void * const ipv4_type);
 
-int ipv4_get_uptype(uint8_t * const ipv4_buf, void * const ipv4_type);
-int ipv4_get_obj(struct proto_chain_s * const protm, void *ipv4_obj);
+int ipv4_get_obj(struct proto_chain_s * const protm, void **ipv4_obj);
 int ipv4_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * const u_layer);
 int ipv4_apply_chain(struct proto_chain_s * const protm, uint8_t * ipv4_buf);
 

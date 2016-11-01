@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     }
 
     strncpy(env_pktm.if_name, argv[2], IFNAMSIZ - 1);
-    if((err_code = parse_ip_str(argv[3], &(env_pktm.ipv4_addr.daddr))))
+    if((err_code = ipv4_parse_str(argv[3], &(env_pktm.ipv4_addr.daddr))))
         return err_code;
 
     fp = fopen(argv[1], "rb");
@@ -63,6 +63,16 @@ int main(int argc, char *argv[])
 //    err_code = (int)ret_thread;
 
     err_code = thread_file_join();
+
+    //Test Code
+    void *testp = NULL;
+    ipv4_chain.proto_get_obj(&ipv4_chain, &testp);
+    for(int i = 0; i < queue_current_size(); ++i){
+        printf("Send : %s --> %s\n", inet_ntoa(IPV4_PTR(testp)->saddr), inet_ntoa(IPV4_PTR(testp)->daddr));
+        ether_operations.pkt_send(p_pktm, queue_elem(i).pcaprec_buf,
+                                queue_elem(i).pcaprec_info.orig_len, NULL);
+    }
+    //Test End
 
     out:
     free_pktm(p_pktm);

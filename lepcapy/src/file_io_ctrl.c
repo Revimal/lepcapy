@@ -67,18 +67,28 @@ int __thread_file_enqueue(FILE *fp){
     if((err_code = __file_io_read(fp, &tmp_node)))
         return err_code;
 
-//    if((err_code = proto_parse_seq()))
-//        return err_code;
+    err_code = __proto_parse_seq(&tmp_node);
+
+    if(err_code == __EDROP){
+        err_code = SUCCESS;
+        goto drop;
+    }
+
+    if(err_code)
+        return err_code;
 
     lock_queue_spinlock();
     queue_elem_tail() = tmp_node;
     queue_list.tail = queue_round_tail(queue_list.tail + 1);
     unlock_queue_spinlock();
+
+    drop:
     return err_code;
 }
 
 int __file_io_init(FILE *fp){
     int err_code = SUCCESS;
+    void *p_proto_obj = NULL;
     struct pcap_hdr_s tmp_pcaphdr;
     struct pcaprec_hdr_s tmp_rechdr;
 
@@ -105,6 +115,19 @@ int __file_io_init(FILE *fp){
     if((err_code = ether_operations.pkt_get_iaddr(p_pktm, &(env_pktm.ipv4_addr.saddr))))
         goto err;
 
+    if((err_code = ether_chain.proto_get_obj(&ether_chain, &p_proto_obj)))
+        goto err;
+    memcpy(ETH_PTR(p_proto_obj)->eth_saddr, env_pktm.eth_addr.eth_saddr, ETH_ALEN);
+    memcpy(ETH_PTR(p_proto_obj)->eth_daddr, "\0\0\0\0\0\0", ETH_ALEN);
+
+    if((err_code = ipv4_chain.proto_get_obj(&ipv4_chain, &p_proto_obj)))
+        goto err;
+    IPV4_PTR(p_proto_obj)->saddr = env_pktm.ipv4_addr.saddr;
+    IPV4_PTR(p_proto_obj)->daddr = env_pktm.ipv4_addr.daddr;
+
+    if((err_code = ether_chain.proto_set_ulayer(&ether_chain, &ipv4_chain)))
+        goto err;
+
     err:
     return err_code;
 }
@@ -126,16 +149,17 @@ int __file_io_read(FILE *fp, struct queue_node_s* tmp_node){
     return err_code;
 }
 
-//int proto_parse_seq(){
-//    int err_code = SUCCESS;
-//    struct ethernetII_layer_s ether_layer;
+int __proto_parse_seq(struct queue_node_s* tmp_node){
+    int err_code = SUCCESS;
+    uint16_t ether_type = 0;
 
-//    get_relative_tv(queue_elem_head().pcaprec_info.tv_sec,
-//                    queue_elem_head().pcaprec_info.tv_usec);
+    if((err_code = ether_get_uptype(tmp_node->pcaprec_buf, &ether_type)))
+        goto err;
+    if(ether_type != ETH_P_IP)
+        return __EDROP;
+    if((err_code = ether_chain.proto_apply_chain(&ether_chain, tmp_node->pcaprec_buf)))
+        goto err;
 
-//    err_code = ethernetII_operation.parse_queue_decap(&queue_elem_head(), PROTO_LAYER(&test));
-
-//    //TODO : Add IPv4 & TCP Protocol Parser
-
-//    return err_code;
-//}
+    err:
+    return err_code;
+}

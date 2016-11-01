@@ -33,6 +33,6 @@ int __file_io_read(FILE *fp, struct queue_node_s*);
 /*
  * Protocol Parsing Functions
  */
-int proto_parse_seq();
+int __proto_parse_seq(struct queue_node_s* tmp_node);
 
 #endif //LEPCAPY_FILE_IO_CTRL_H
