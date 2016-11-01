@@ -53,7 +53,7 @@ struct pktm_operation_s{
 //    int (*pkt_get_header)(struct pktm_object_s * const pktm, const void * p_protbuf);
 //    int (*pkt_get_payload)(struct pktm_object_s * const pktm, const void * p_protbuf);
 
-    int (*pkt_ctl)(struct pktm_object_s * pktm, const int ctl_num, void* args);
+    int (*pkt_ctl)(struct pktm_object_s * pktm, const int ctl_num, void *args);
 };
 
 #endif //LEPCAPY_PKTM_STRUC_H

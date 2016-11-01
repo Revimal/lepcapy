@@ -102,7 +102,7 @@ int __file_io_init(FILE *fp){
         goto err;
     if((err_code = ether_operations.pkt_get_naddr(p_pktm, env_pktm.eth_addr.eth_saddr)))
         goto err;
-    if((err_code = ether_operations.pkt_get_iaddr(p_pktm, &(env_pktm.src_ip))))
+    if((err_code = ether_operations.pkt_get_iaddr(p_pktm, &(env_pktm.ipv4_addr.saddr))))
         goto err;
 
     err:

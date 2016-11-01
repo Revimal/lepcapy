@@ -2,13 +2,7 @@
 
 int io_interact_flag = 0;
 
-struct queue_list_s queue_list = {
-    max_len : 0,
-    head : 0,
-    tail : 0,
-    base_sec : 0,
-    base_usec : 0,
-};
+struct queue_list_s queue_list;
 
 int queue_init(){
     int i = 0;

@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     }
 
     strncpy(env_pktm.if_name, argv[2], IFNAMSIZ - 1);
-    if((err_code = parse_ip_str(argv[3], &(env_pktm.dst_ip))))
+    if((err_code = parse_ip_str(argv[3], &(env_pktm.ipv4_addr.daddr))))
         return err_code;
 
     fp = fopen(argv[1], "rb");

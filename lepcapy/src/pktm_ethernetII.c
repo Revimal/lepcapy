@@ -12,7 +12,7 @@ struct pktm_operation_s ether_operations = {
 //    pktm_ether_get_header,      //pkt_get_header
 //    pktm_ether_get_payload,     //pkt_get_payload
 
-    NULL,            //pkt_ctl
+    pktm_ether_ctl,            //pkt_ctl
 };
 
 int pktm_ether_init(struct pktm_object_s * const pktm, char * const if_ifn){
@@ -26,9 +26,8 @@ int pktm_ether_init(struct pktm_object_s * const pktm, char * const if_ifn){
     if(pktm->init)
         return -EPMINIT;
 
-    eth_pktm = ETH_PTR(pktm);
-
-    memset(eth_pktm, 0, sizeof(struct pktm_ether_s));
+    pktm->init = 0;
+    eth_pktm = PKTM_ETH_PTR(pktm);
     eth_pktm->eth_mexit = pktm_ether_exit;
 
     if((eth_pktm->sd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1){
@@ -81,7 +80,7 @@ void pktm_ether_exit(struct pktm_object_s * const pktm){
 
     pktm->init = 0;
 
-    eth_pktm = ETH_PTR(pktm);
+    eth_pktm = PKTM_ETH_PTR(pktm);
 
     if(eth_pktm->sd){
         close(eth_pktm->sd);
@@ -89,7 +88,7 @@ void pktm_ether_exit(struct pktm_object_s * const pktm){
     }
 }
 
-ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_buf, const ssize_t prot_len, void * dummy){
+ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_buf, const ssize_t prot_len, void *dummy){
     struct pktm_ether_s *eth_pktm = NULL;
 
     if(!(pktm && prot_buf && prot_len))
@@ -98,7 +97,7 @@ ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_
     if(!(pktm->init))
         return -EPMINIT;
 
-    eth_pktm = ETH_PTR(pktm);
+    eth_pktm = PKTM_ETH_PTR(pktm);
 
     if(prot_len > ETH_DATA_LEN)
         return -ETRANS;
@@ -158,7 +157,7 @@ int pktm_ether_get_naddr(struct pktm_object_s * const pktm, void * const hwa){
         return -EPMINIT;
 
     for(i = 0; i < ETH_ALEN; ++i)
-        ((uint8_t*)hwa)[i] = ETH_PTR(pktm)->tx_addr.sll_addr[i];
+        ((uint8_t*)hwa)[i] = PKTM_ETH_PTR(pktm)->tx_addr.sll_addr[i];
 
     return SUCCESS;
 }
@@ -174,7 +173,7 @@ int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const ipa){
     if(!(pktm->init))
         return -EPMINIT;
 
-    eth_pktm = ETH_PTR(pktm);
+    eth_pktm = PKTM_ETH_PTR(pktm);
 
     memset(&ifobj, 0, sizeof(struct ifreq));
     strncpy(ifobj.ifr_ifrn.ifrn_name, eth_pktm->eth_name, IFNAMSIZ - 1);
@@ -220,3 +219,7 @@ int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const ipa){
 
 //    return SUCCESS;
 //}
+
+int pktm_ether_ctl(struct pktm_object_s * pktm, const int ctl_num, void *dummy){
+    return -EINVPF;
+}
