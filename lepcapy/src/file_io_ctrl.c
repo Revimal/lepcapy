@@ -3,22 +3,20 @@
 static pthread_t p_thread;
 
 int thread_file_io(FILE *fp){
-    int err_code = SUCCESS;
-
     if(p_pktm == NULL)
         return -ENULL;
 
     __file_io_init(fp);
-    if((err_code = pthread_create(&p_thread, NULL, __thread_file_io, (void *)fp)))
-        goto err;
+    if(pthread_create(&p_thread, NULL, __thread_file_io, (void *)fp))
+        return -ETHREAD;
 
     while(queue_current_size() < NETIO_QUEUING_SIZE){
         sleep(0);
     }
 
     io_interact_flag = 1;
-    err:
-    return err_code;
+
+    return SUCCESS;
 }
 
 int thread_file_join(){
@@ -33,11 +31,14 @@ void *__thread_file_io(void *file_ptr){
 
     while(1){
         err_code = __thread_file_enqueue((FILE*)file_ptr);
-/*        if(err_code == -EQUEUE)
-            sleep(0);
-        else */if(err_code)
+        if(err_code == -EQUEUE){
+            printf("Wait Dequeue\n");
+            err_code = SUCCESS;
+            sleep(1);
+            continue;
+        }
+        else if(err_code)
             break;
-
         //TODO : Need Consumer
     }
     io_interact_flag = 0;
@@ -52,13 +53,13 @@ int __thread_file_enqueue(FILE *fp){
      */
 
     int err_code = SUCCESS;
-    struct queue_node_s tmp_node = {0,};
+    struct queue_node_s tmp_node;
 
     if(!fp)
         return -EINVAL;
 
     lock_queue_spinlock();
-    if(queue_round_tail((queue_list.tail + 1)) == queue_list.head){
+    if(queue_round_tail((queue_list.rear + 1)) == queue_list.front){
         unlock_queue_spinlock();
         return -EQUEUE;
     }
@@ -78,8 +79,8 @@ int __thread_file_enqueue(FILE *fp){
         return err_code;
 
     lock_queue_spinlock();
-    queue_elem_tail() = tmp_node;
-    queue_list.tail = queue_round_tail(queue_list.tail + 1);
+    queue_elem_rear() = tmp_node;
+    queue_list.rear = queue_round_tail(queue_list.rear + 1);
     unlock_queue_spinlock();
 
     drop:
@@ -104,8 +105,7 @@ int __file_io_init(FILE *fp){
 
     fseek(fp, -sizeof(struct pcaprec_hdr_s), SEEK_CUR);
 
-    queue_list.base_sec = tmp_rechdr.tv_sec;
-    queue_list.base_usec = tmp_rechdr.tv_usec;
+    set_relative_tv(tmp_rechdr.tv_sec, tmp_rechdr.tv_usec);
 
     //TODO : Add Network Access Layer detection
     if((err_code = ether_operations.pkt_minit(p_pktm, env_pktm.if_name)))

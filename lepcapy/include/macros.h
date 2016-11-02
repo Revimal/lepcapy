@@ -68,6 +68,7 @@
 #define EINVPF          15  /* Invalid | Non-support protocol features */
 #define EPMINIT         16  /* Initialize error on pktm */
 #define __EDROP         17  /* Dropped packet */
+#define EINTRACT        18  /* Thread interaction error */
 
 /*
  * General Macro Functions
