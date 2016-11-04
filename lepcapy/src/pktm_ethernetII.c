@@ -1,5 +1,10 @@
 #include "pktm_ethernetII.h"
 
+static ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_buf, const ssize_t prot_len, void *dummy);
+static int pktm_ether_get_naddr(struct pktm_object_s * const pktm, void * const hwa);
+static int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const ipa);
+static int pktm_ether_ctl(struct pktm_object_s * pktm, const int ctl_num, void *dummy);
+
 struct pktm_operation_s ether_operations = {
     pktm_ether_init,            //pkt_minit
     pktm_ether_exit,            //pkt_mexit
@@ -88,7 +93,7 @@ void pktm_ether_exit(struct pktm_object_s * const pktm){
     }
 }
 
-ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_buf, const ssize_t prot_len, void *dummy){
+static ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_buf, const ssize_t prot_len, void *dummy){
     ssize_t sz_tx;
     struct pktm_ether_s *eth_pktm = NULL;
 
@@ -100,8 +105,8 @@ ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_
 
     eth_pktm = PKTM_ETH_PTR(pktm);
 
-    if(prot_len > (ETH_FRAME_LEN + ETH_FCS_LEN))
-        return -EOVRFLW;
+    if(prot_len > ETH_FRAME_LEN)
+        return -EJFRAME;
 
     if((sz_tx = sendto(eth_pktm->sd, prot_buf, prot_len, 0, (struct sockaddr *)&eth_pktm->tx_addr, sizeof(struct sockaddr_ll))) < 0){
         return -ETRANS;
@@ -110,45 +115,7 @@ ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_
     return sz_tx;
 }
 
-//int pktm_ether_init_etherbuf(struct pktm_object_s * const pktm, uint8_t * const buf, const ssize_t cnt, void *prot_addr){
-//    int err = SUCCESS, i = 0;
-//    struct pktm_ether_s *eth_pktm = NULL;
-//    struct netaddr_ether *eth_addr = NULL;
-
-//    if(!(pktm && prot_addr))
-//        return -EINVAL;
-
-//    if(!(pktm->__init))
-//        return -EPMINIT;
-
-//    eth_pktm = ETH_PTR(pktm);
-//    eth_addr = (struct netaddr_ether *)prot_addr;
-
-
-//    if(eth_pktm->eth_buf)
-//        return -EADDR;
-
-//    if(cnt > (int)(ETH_DATA_LEN))
-//        return -EOVRFLW;
-
-//    eth_pktm->offset = 0;
-//    eth_pktm->eth_buf = buf;
-//    eth_pktm->eth_hdr = (struct ether_header *)eth_pktm->eth_buf;
-//    eth_pktm->eth_payload = eth_pktm->eth_buf + sizeof(struct ether_header);
-//    eth_pktm->offset += sizeof(struct ether_header);
-
-//    for(i = 0; i < ETH_ALEN; ++i)
-//        eth_pktm->eth_hdr->ether_shost[i] = eth_addr->eth_saddr[i];
-
-//    for(i = 0; i < ETH_ALEN; ++i)
-//        eth_pktm->eth_hdr->ether_dhost[i] = eth_addr->eth_daddr[i];
-
-//    eth_pktm->offset += (cnt - sizeof(struct ether_header));
-
-//    return err;
-//}
-
-int pktm_ether_get_naddr(struct pktm_object_s * const pktm, void * const hwa){
+static int pktm_ether_get_naddr(struct pktm_object_s * const pktm, void * const hwa){
     int i = 0;
 
     if(!(pktm && hwa))
@@ -163,7 +130,7 @@ int pktm_ether_get_naddr(struct pktm_object_s * const pktm, void * const hwa){
     return SUCCESS;
 }
 
-int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const ipa){
+static int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const ipa){
     int err = SUCCESS;
     struct pktm_ether_s *eth_pktm = NULL;
     struct ifreq ifobj;
@@ -190,37 +157,6 @@ int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const ipa){
     return err;
 }
 
-
-//int pktm_ether_get_header(struct pktm_object_s * const pktm, const void * p_ethbuf){
-//    struct pktm_ether_s *eth_pktm = NULL;
-
-//    if(!(pktm && p_ethbuf))
-//        return -EINVAL;
-
-//    if(!(pktm->__init))
-//        return -EPMINIT;
-
-//    eth_pktm = ETH_PTR(pktm);
-//    p_ethbuf = (const void *)(eth_pktm->eth_hdr);
-
-//    return SUCCESS;
-//}
-
-//int pktm_ether_get_payload(struct pktm_object_s * const pktm, const void * p_ethbuf){
-//    struct pktm_ether_s *eth_pktm = NULL;
-
-//    if(!(pktm && p_ethbuf))
-//        return -EINVAL;
-
-//    if(!(pktm->__init))
-//        return -EPMINIT;
-
-//    eth_pktm = ETH_PTR(pktm);
-//    p_ethbuf = (const void *)(eth_pktm->eth_payload);
-
-//    return SUCCESS;
-//}
-
-int pktm_ether_ctl(struct pktm_object_s * pktm, const int ctl_num, void *dummy){
+static int pktm_ether_ctl(struct pktm_object_s * pktm, const int ctl_num, void *dummy){
     return -EINVPF;
 }

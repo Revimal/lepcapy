@@ -1,5 +1,9 @@
 #include "proto_ipv4.h"
 
+static int ipv4_get_obj(struct proto_chain_s * const protm, void **ipv4_obj);
+static int ipv4_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * const u_layer);
+static int ipv4_apply_chain(struct proto_chain_s * const protm, uint8_t * const ipv4_buf);
+
 static struct proto_ipv4 obj_ipv4;
 struct proto_chain_s ipv4_chain = {
     &obj_ipv4,              //__proto_obj
@@ -11,7 +15,7 @@ struct proto_chain_s ipv4_chain = {
     ipv4_apply_chain,       //proto_apply_chain
 };
 
-int ipv4_get_obj(struct proto_chain_s * const protm, void **ipv4_obj){
+static int ipv4_get_obj(struct proto_chain_s * const protm, void **ipv4_obj){
     if(!protm)
         return -EINVAL;
 
@@ -20,7 +24,7 @@ int ipv4_get_obj(struct proto_chain_s * const protm, void **ipv4_obj){
     return SUCCESS;
 }
 
-int ipv4_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * const u_layer){
+static int ipv4_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * const u_layer){
     if(!(protm && u_layer))
         return -EINVAL;
 
@@ -29,7 +33,7 @@ int ipv4_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * c
     return SUCCESS;
 }
 
-int ipv4_apply_chain(struct proto_chain_s * const protm, uint8_t * const ipv4_buf){
+static int ipv4_apply_chain(struct proto_chain_s * const protm, uint8_t * const ipv4_buf){
     int err = SUCCESS;
     struct proto_ipv4 *p_ipv4_obj = NULL;
     struct ip *ipv4_hdr = NULL;

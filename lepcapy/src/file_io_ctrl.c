@@ -1,13 +1,24 @@
 #include "file_io_ctrl.h"
 
-static pthread_t p_thread;
+static pthread_t t_thread;
 
 int thread_file_io(FILE *fp){
+    int err_code = SUCCESS;
+    pthread_attr_t t_attr;
+    struct sched_param t_param;
+
     if(p_pktm == NULL)
         return -ENULL;
 
-    __file_io_init(fp);
-    if(pthread_create(&p_thread, NULL, __thread_file_io, (void *)fp))
+    if((err_code = __file_io_init(fp)))
+        return err_code;
+
+    pthread_attr_init(&t_attr);
+    pthread_attr_getschedparam(&t_attr, &t_param);
+    t_param.__sched_priority = sched_get_priority_max(SCHED_FIFO);
+    pthread_attr_setschedparam(&t_attr, &t_param);
+    pthread_attr_setschedpolicy(&t_attr, SCHED_FIFO);
+    if(pthread_create(&t_thread, &t_attr, __thread_file_io, (void *)fp))
         return -ETHREAD;
 
     while(queue_current_size() < NETIO_QUEUING_SIZE){
@@ -16,13 +27,13 @@ int thread_file_io(FILE *fp){
 
     io_interact_flag = 1;
 
-    return SUCCESS;
+    return err_code;
 }
 
 int thread_file_join(){
     unsigned long ret_thread = SUCCESS;
 
-    pthread_join(p_thread, (void **)&ret_thread);
+    pthread_join(t_thread, (void **)&ret_thread);
     return (int)ret_thread;
 }
 
@@ -32,9 +43,8 @@ void *__thread_file_io(void *file_ptr){
     while(1){
         err_code = __thread_file_enqueue((FILE*)file_ptr);
         if(err_code == -EQUEUE){
-            printf("Wait Dequeue\n");
             err_code = SUCCESS;
-            sleep(1);
+            sched_yield();
             continue;
         }
         else if(err_code)
@@ -68,18 +78,23 @@ int __thread_file_enqueue(FILE *fp){
     if((err_code = __file_io_read(fp, &tmp_node)))
         return err_code;
 
+    __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
+
     err_code = __proto_parse_seq(&tmp_node);
 
-    if(err_code == __EDROP){
-        err_code = SUCCESS;
-        goto drop;
+//    set_relative_tv(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
+//    calc_relative_tv(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
+
+    if(err_code){
+        if(err_code == __EDROP){
+            err_code = SUCCESS;
+            goto drop;
+        }
+        return err_code;
     }
 
-    if(err_code)
-        return err_code;
-
     lock_queue_spinlock();
-    queue_elem_rear() = tmp_node;
+    memcpy(&queue_elem_rear(), &tmp_node, sizeof(struct queue_node_s));
     queue_list.rear = queue_round_tail(queue_list.rear + 1);
     unlock_queue_spinlock();
 
@@ -105,7 +120,7 @@ int __file_io_init(FILE *fp){
 
     fseek(fp, -sizeof(struct pcaprec_hdr_s), SEEK_CUR);
 
-    set_relative_tv(tmp_rechdr.tv_sec, tmp_rechdr.tv_usec);
+    __set_relative_tv(tmp_rechdr.tv_sec, tmp_rechdr.tv_usec);
 
     //TODO : Add Network Access Layer detection
     if((err_code = ether_operations.pkt_minit(p_pktm, env_pktm.if_name)))

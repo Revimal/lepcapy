@@ -69,6 +69,7 @@
 #define EPMINIT         16  /* Initialize error on pktm */
 #define __EDROP         17  /* Dropped packet */
 #define EINTRACT        18  /* Thread interaction error */
+#define EJFRAME         19  /* Not support Jumbo-frame */
 
 /*
  * General Macro Functions

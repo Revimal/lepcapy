@@ -3,7 +3,6 @@
 
 #include "trans_ctrl.h"
 #include "pcap_io.h"
-#include "record_queue.h"
 
 //  TODO : Split as File I/O & Source Ctrl
 

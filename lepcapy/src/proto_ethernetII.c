@@ -1,5 +1,9 @@
 #include "proto_ethernetII.h"
 
+static int ether_get_obj(struct proto_chain_s * const protm, void **ether_obj);
+static int ether_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * const u_layer);
+static int ether_apply_chain(struct proto_chain_s * const protm, uint8_t * const ether_buf);
+
 static struct proto_ether obj_ether;
 struct proto_chain_s ether_chain = {
     &obj_ether,             //__proto_obj
@@ -11,7 +15,7 @@ struct proto_chain_s ether_chain = {
     ether_apply_chain,      //proto_apply_chain
 };
 
-int ether_get_obj(struct proto_chain_s * const protm, void **ether_obj){
+static int ether_get_obj(struct proto_chain_s * const protm, void **ether_obj){
     if(!protm)
         return -EINVAL;
 
@@ -20,7 +24,7 @@ int ether_get_obj(struct proto_chain_s * const protm, void **ether_obj){
     return SUCCESS;
 }
 
-int ether_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * const u_layer){
+static int ether_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * const u_layer){
     if(!(protm && u_layer))
         return -EINVAL;
 
@@ -29,7 +33,7 @@ int ether_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * 
     return SUCCESS;
 }
 
-int ether_apply_chain(struct proto_chain_s * const protm, uint8_t * const ether_buf){
+static int ether_apply_chain(struct proto_chain_s * const protm, uint8_t * const ether_buf){
     int err = SUCCESS, i = 0;
     struct proto_ether *p_ether_obj = NULL;
     struct ether_header *ether_hdr = NULL;

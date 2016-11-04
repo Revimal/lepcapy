@@ -50,20 +50,10 @@
 #define lock_queue_spinlock() pthread_spin_lock(get_queue_spinlock())
 #define unlock_queue_spinlock() pthread_spin_unlock(get_queue_spinlock())
 
-#define set_relative_tv(cur_sec, cur_usec)  \
+#define __set_relative_tv(cur_sec, cur_usec)  \
     do{                                     \
-        queue_list.rel_sec = cur_sec;       \
-        queue_list.rel_usec = cur_usec;     \
-    }while(0)
-
-#define calc_relative_tv(cur_sec, cur_usec) \
-    do{                                     \
-        cur_sec -= queue_list.rel_sec;      \
-        cur_usec -= queue_list.rel_usec;    \
-        if(cur_usec < 0){                   \
-            (cur_sec)--;                    \
-            cur_usec += 1000000;            \
-        }                                   \
+        queue_list.rel_sec = (cur_sec);       \
+        queue_list.rel_usec = (cur_usec);     \
     }while(0)
 
 struct queue_node_s{
@@ -89,6 +79,25 @@ struct queue_list_s{
 
 extern struct queue_list_s queue_list;
 extern int io_interact_flag;
+
+static inline void __calc_relative_tv(uint32_t * const tv_sec, int32_t * const tv_usec){
+    uint32_t tmp_sec;
+    int32_t tmp_usec;
+
+    tmp_sec = *tv_sec;
+    tmp_usec = *tv_usec;
+
+    tmp_sec -= queue_list.rel_sec;
+    tmp_usec -= queue_list.rel_usec;
+    if(tmp_usec < 0){
+        (tmp_sec)--;
+        tmp_usec += 1000000;
+    }
+
+    __set_relative_tv(*tv_sec, *tv_usec);
+    *tv_sec = tmp_sec;
+    *tv_usec = tmp_usec;
+}
 
 int queue_init();
 
