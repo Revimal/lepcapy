@@ -1,48 +1,46 @@
-#include "macros.h"
-#include "pcap_glb.h"
-#include "pcap_queue.h"
-#include "ethernetII.h"
+#include "file_io_ctrl.h"
 
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-//unsigned long diff(struct timespec start, struct timespec end)
-//{
-//        if ((end.tv_nsec - start.tv_nsec) < 0)
-//                return 1000000000 + end.tv_nsec - start.tv_nsec;
-//        else
-//                return end.tv_nsec - start.tv_nsec;
-//}
-
 int main(int argc, char *argv[])
 {
-//    struct timespec tspec1, tspec2;
-    unsigned long ret_thread = SUCCESS;
     int err_code = SUCCESS;
     FILE *fp = NULL;
     struct pcap_hdr_s p_pcap_hdr;
-    pthread_t file_io_thread;
 
-    if(argc < 2)
-        return err_code = -EINVAL;
+    if(argc < 4){
+        printf("Usage : lepcapy [Dump file] [Interface Name] [IP Address]\n");
+        err_code = -EINVAL;
+        return err_code;
+    }
+
+    strncpy(env_pktm.if_name, argv[2], IFNAMSIZ - 1);
+    if((err_code = ipv4_parse_str(argv[3], &(env_pktm.ipv4_addr.daddr))))
+        return err_code;
 
     fp = fopen(argv[1], "rb");
     if(fp == NULL)
         return -ENULL;
 
-    if((err_code = load_pcap_format(&fp, &p_pcap_hdr)))
+    //  TODO : Add .so ldr for custom toolkit
+
+    if((err_code = load_pcap_format(fp, &p_pcap_hdr)))
         goto out;
+    //  TODO : Need Refactoring (FILE I/O --> Source Control)
 
     printf("PCAP Version : %d.%d\n", p_pcap_hdr.version_major, p_pcap_hdr.version_minor);
     printf("Packet Type : %d\n", p_pcap_hdr.network);
 
+    /*
+     * Start of Routine
+     */
     queue_init();
-//    clock_gettime(CLOCK_MONOTONIC, &tspec1);
-    io_thread = 1;
-    pthread_create(&file_io_thread, NULL, &thread_file_record_io, (void *)&fp);
+    alloc_pktm(p_pktm);
+    thread_file_io(fp);
 
-    while(1){
+//    while(1){
 //        err_code = queue_enqueue_file_io(&fp);
 //        if(err_code && err_code != -EFIO)
 //            goto out;
@@ -50,23 +48,34 @@ int main(int argc, char *argv[])
 //            err_code = SUCCESS;
 //            break;
 //        }
-        err_code = queue_dequeue_net_io();
-        if(err_code){
-            sleep(0);
-            if(LEPCAPY_EXPECT_F(io_thread == 0))
-                break;
-        }
+
+//        err_code = queue_dequeue_net_io();
+//        if(err_code){
+//            sleep(0);
+//            if(LEPCAPY_EXPECT_F(io_interact_flag == 0))
+//                break;
+//        }
+
 //        if(err_code)
 //            goto out;
-    }
-    pthread_join(file_io_thread, (void **)ret_thread);
-    err_code = (int)ret_thread;
+//    }
+//    pthread_join(file_io_thread, (void **)ret_thread);
+//    err_code = (int)ret_thread;
 
+    err_code = thread_file_join();
+
+    //Test Code
+    void *testp = NULL;
+    ipv4_chain.proto_get_obj(&ipv4_chain, &testp);
+    for(int i = 0; i < queue_current_size(); ++i){
+        printf("Send : %s --> %s\n", inet_ntoa(IPV4_PTR(testp)->saddr), inet_ntoa(IPV4_PTR(testp)->daddr));
+        ether_operations.pkt_send(p_pktm, queue_elem(i).pcaprec_buf,
+                                queue_elem(i).pcaprec_info.orig_len, NULL);
+    }
+    //Test End
 
     out:
+    free_pktm(p_pktm);
     fclose(fp);
-
-//    clock_gettime(CLOCK_MONOTONIC, &tspec2);
-//    printf("Elapsed Time : %luns\n", diff(tspec1, tspec2));
     return err_code;
 }

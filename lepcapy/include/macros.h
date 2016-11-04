@@ -2,6 +2,12 @@
 #define LEPCAPY_MACROS_H
 
 /*
+ * Gloabal Dependencies
+ */
+#include <stdint.h>
+#include <stdlib.h>
+
+/*
  * Compile Option
  */
 #define MAX_QUEUE_SIZE 4096
@@ -28,11 +34,11 @@
     #define LEPCAPY_EXPECT_T(x)
     #define LEPCAPY_EXPECT_F(x)
 #else
-    #define LEPCAPY_DEBUG __attribute__ ((unused))
+    #define LEPCAPY_DUMMY __attribute__ ((unused))
     #define LEPCAPY_EXPLICIT __attribute__ ((used))
     #define LEPCAPY_SECTION(name) __attribute__ ((section (name)))
     #define LEPCAPY_ALIGN(size) __attribute__ ((aligned (size)))
-            #define LEPCAPY_PACK_DEF
+    #define LEPCAPY_PACK_DEF
     #define LEPCAPY_PACK __attribute__ ((packed))
     #define LEPCAPY_DEPRECATED(func) func __attribute__ ((deprecated))
     #define LEPCAPY_LFUNC inline
@@ -47,7 +53,7 @@
 #define SUCCESS         0
 #define EPERM           1   /* Operation not permitted */
 #define EFIO            2   /* File I/O error */
-#define ENIO            3   /* Network I/O error */
+#define ETRANS          3   /* Network transportation error */
 #define ENULL           4   /* Null pointer access fault */
 #define EADDR           5   /* Misc address access fault */
 #define EACCES          6   /* Permission denied */
@@ -56,6 +62,12 @@
 #define EMAGIC          9   /* Magic check fault */
 #define EQUEUE          10  /* Record queue fault */
 #define ETHREAD         11  /* Threading fault */
+#define EOVRFLW         12  /* Overflow fault */
+#define EIOCTL          13  /* Ioctl Error */
+#define ESOCK           14  /* Socket Error */
+#define EINVPF          15  /* Invalid | Non-support protocol features */
+#define EPMINIT         16  /* Initialize error on pktm */
+#define __EDROP         17  /* Dropped packet */
 
 /*
  * General Macro Functions

@@ -1,11 +1,9 @@
-#ifndef LEPCAPY_PCAP_GLB_H
-#define LEPCAPY_PCAP_GLB_H
+#ifndef LEPCAPY_PCAP_STRUC_H
+#define LEPCAPY_PCAP_STRUC_H
 
 #include "macros.h"
 
-#include <stdio.h>
-#include <stdint.h>
-
+#define pcaprec_data unsigned char
 #define PCAP_MAGIC_NUM 0xa1b2c3d4
 
 struct pcap_hdr_s{
@@ -18,9 +16,11 @@ struct pcap_hdr_s{
     uint32_t network;        /* data link type */
 };
 
-int io_thread;
+struct pcaprec_hdr_s{
+    uint32_t tv_sec;
+    int32_t tv_usec;
+    uint32_t inc_len;
+    uint32_t orig_len;
+};
 
-int load_pcap_format(FILE **fp, struct pcap_hdr_s *p_pcap_hdr);
-void *thread_file_record_io(void *file_ptr);
-//void* thread_network_record_io(LEPCAPY_DEBUG void *arg);
-#endif // LEPCAPY_PCAP_GLB_H
+#endif //LEPCAPY_PCAP_STRUC_H
