@@ -89,6 +89,7 @@ void pktm_ether_exit(struct pktm_object_s * const pktm){
 }
 
 ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_buf, const ssize_t prot_len, void *dummy){
+    ssize_t sz_tx;
     struct pktm_ether_s *eth_pktm = NULL;
 
     if(!(pktm && prot_buf && prot_len))
@@ -99,14 +100,14 @@ ssize_t pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_
 
     eth_pktm = PKTM_ETH_PTR(pktm);
 
-    if(prot_len > ETH_DATA_LEN)
-        return -ETRANS;
+    if(prot_len > (ETH_FRAME_LEN + ETH_FCS_LEN))
+        return -EOVRFLW;
 
-    if((sendto(eth_pktm->sd, prot_buf, prot_len, 0, (struct sockaddr *)&eth_pktm->tx_addr, sizeof(struct sockaddr_ll))) < 0){
+    if((sz_tx = sendto(eth_pktm->sd, prot_buf, prot_len, 0, (struct sockaddr *)&eth_pktm->tx_addr, sizeof(struct sockaddr_ll))) < 0){
         return -ETRANS;
     }
 
-    return SUCCESS;
+    return sz_tx;
 }
 
 //int pktm_ether_init_etherbuf(struct pktm_object_s * const pktm, uint8_t * const buf, const ssize_t cnt, void *prot_addr){

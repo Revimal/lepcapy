@@ -1,4 +1,5 @@
 #include "file_io_ctrl.h"
+#include "net_io_ctrl.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -38,7 +39,10 @@ int main(int argc, char *argv[])
      */
     queue_init();
     alloc_pktm(p_pktm);
-    thread_file_io(fp);
+    if((err_code = thread_file_io(fp)))
+        goto out;
+    if((err_code = thread_net_io()))
+        goto err_net_th;
 
 //    while(1){
 //        err_code = queue_enqueue_file_io(&fp);
@@ -62,17 +66,13 @@ int main(int argc, char *argv[])
 //    pthread_join(file_io_thread, (void **)ret_thread);
 //    err_code = (int)ret_thread;
 
-    err_code = thread_file_join();
 
-    //Test Code
-    void *testp = NULL;
-    ipv4_chain.proto_get_obj(&ipv4_chain, &testp);
-    for(int i = 0; i < queue_current_size(); ++i){
-        printf("Send : %s --> %s\n", inet_ntoa(IPV4_PTR(testp)->saddr), inet_ntoa(IPV4_PTR(testp)->daddr));
-        ether_operations.pkt_send(p_pktm, queue_elem(i).pcaprec_buf,
-                                queue_elem(i).pcaprec_info.orig_len, NULL);
-    }
-    //Test End
+    err_code = thread_file_join();
+    err_code = thread_net_join();
+    goto out;
+
+    err_net_th:
+    err_code = thread_file_join();
 
     out:
     free_pktm(p_pktm);

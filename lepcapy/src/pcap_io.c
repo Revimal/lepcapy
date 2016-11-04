@@ -26,12 +26,15 @@ int load_pcap_record(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, pcaprec_data
     if((err_code = load_pcap_rechdr_pure(fp, p_pcap_rechdr)))
         return err_code;
 
-    if(p_pcap_rechdr->inc_len > max_len * 8){
+    if(p_pcap_rechdr->inc_len > max_len){
         err_code = -EOVRFLW;
         goto out;
     }
 
-    if((err_code = load_pcap_recdata_pure(fp, p_pcap_recdata,  p_pcap_rechdr->inc_len)))
+    if(!alloc_contig(*p_pcap_recdata, pcaprec_data, p_pcap_rechdr->inc_len + 1))
+        return -ENULL;
+
+    if((err_code = load_pcap_recdata_pure(fp, p_pcap_recdata, p_pcap_rechdr->inc_len)))
         goto out;
 
     goto success;
@@ -48,7 +51,7 @@ int load_pcap_rechdr(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, uint32_t max
     if((err_code = load_pcap_rechdr_pure(fp, p_pcap_rechdr)))
         return err_code;
 
-    if(p_pcap_rechdr->inc_len > max_len * 8)
+    if(p_pcap_rechdr->inc_len > max_len)
         return -EOVRFLW;
 
     fseek(fp, p_pcap_rechdr->inc_len, SEEK_CUR);
@@ -80,8 +83,7 @@ int load_pcap_recdata(FILE *fp, pcaprec_data **p_pcap_recdata, uint32_t cnt){
 
 int load_pcap_recdata_pure(FILE *fp, pcaprec_data **p_pcap_recdata, uint32_t cnt){
     if(*p_pcap_recdata == NULL)
-        if(!alloc_contig(*p_pcap_recdata, pcaprec_data, cnt))
-            return -ENULL;
+        return -EINVAL;
 
     if(fread(*p_pcap_recdata, 1, cnt, fp) != cnt){
         free_ptr(p_pcap_recdata);
