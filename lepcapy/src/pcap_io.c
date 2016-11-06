@@ -1,3 +1,4 @@
+#include "exception_ctrl.h"
 #include "pcap_io.h"
 
 /*
@@ -8,14 +9,20 @@
  */
 
 int load_pcap_format(FILE *fp, struct pcap_hdr_s *p_pcap_hdr){
-    if(!fp || p_pcap_hdr == NULL)
+    if(!(fp && p_pcap_hdr)){
+        raise_except(ERR_NULL(fp|p_pcap_hdr), -EINVAL);
         return -EINVAL;
+    }
 
-    if(fread(p_pcap_hdr, sizeof(struct pcap_hdr_s), 1, fp) != 1)
+    if(fread(p_pcap_hdr, sizeof(struct pcap_hdr_s), 1, fp) != 1){
+        raise_except(ERR_CALL_LIBC(fread), -EFIO);
         return -EFIO;
+    }
 
-    if(p_pcap_hdr->magic_number != PCAP_MAGIC_NUM)
+    if(p_pcap_hdr->magic_number != PCAP_MAGIC_NUM){
+        raise_except(ERR_INVAL(magic_number), -EMAGIC);
         return -EMAGIC;
+    }
 
     return SUCCESS;
 }
@@ -23,19 +30,26 @@ int load_pcap_format(FILE *fp, struct pcap_hdr_s *p_pcap_hdr){
 int load_pcap_record(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, pcaprec_data **p_pcap_recdata, uint32_t max_len){
     int err_code = SUCCESS;
 
-    if((err_code = load_pcap_rechdr_pure(fp, p_pcap_rechdr)))
+    if((err_code = load_pcap_rechdr_pure(fp, p_pcap_rechdr))){
+        raise_except(ERR_CALL(load_pcap_rechdr_pure), err_code);
         return err_code;
+    }
 
     if(p_pcap_rechdr->inc_len > max_len){
+        raise_except(ERR_INVAL(inc_len), err_code);
         err_code = -EOVRFLW;
         goto out;
     }
 
-    if(!alloc_contig(*p_pcap_recdata, pcaprec_data, p_pcap_rechdr->inc_len + 1))
+    if(!alloc_contig(*p_pcap_recdata, pcaprec_data, p_pcap_rechdr->inc_len + 1)){
+        raise_except(ERR_CALL_MACRO(alloc_contig), -ENULL);
         return -ENULL;
+    }
 
-    if((err_code = load_pcap_recdata_pure(fp, p_pcap_recdata, p_pcap_rechdr->inc_len)))
+    if((err_code = load_pcap_recdata_pure(fp, p_pcap_recdata, p_pcap_rechdr->inc_len))){
+        raise_except(ERR_CALL(load_pcap_recdata_pure), err_code);
         goto out;
+    }
 
     goto success;
 
@@ -48,22 +62,33 @@ int load_pcap_record(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, pcaprec_data
 int load_pcap_rechdr(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, uint32_t max_len){
     int err_code = SUCCESS;
 
-    if((err_code = load_pcap_rechdr_pure(fp, p_pcap_rechdr)))
+    if((err_code = load_pcap_rechdr_pure(fp, p_pcap_rechdr))){
+        raise_except(ERR_CALL(load_pcap_rechdr_pure), err_code);
         return err_code;
+    }
 
-    if(p_pcap_rechdr->inc_len > max_len)
+    if(p_pcap_rechdr->inc_len > max_len){
+        raise_except(ERR_INVAL(inc_len), err_code);
         return -EOVRFLW;
+    }
 
-    fseek(fp, p_pcap_rechdr->inc_len, SEEK_CUR);
+    if(fseek(fp, p_pcap_rechdr->inc_len, SEEK_CUR)){
+        raise_except(ERR_CALL_LIBC(fseek), -EFIO);
+        return -EFIO;
+    }
     return SUCCESS;
 }
 
 int load_pcap_rechdr_pure(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr){
-    if(!fp || p_pcap_rechdr == NULL)
+    if(!(fp && p_pcap_rechdr)){
+        raise_except(ERR_NULL(fp|p_pcap_rechdr), -EINVAL);
         return -EINVAL;
+    }
 
-    if(fread(p_pcap_rechdr, sizeof(struct pcaprec_hdr_s), 1, fp) != 1)
+    if(fread(p_pcap_rechdr, sizeof(struct pcaprec_hdr_s), 1, fp) != 1){
+        raise_except(ERR_CALL_LIBC(fread), -EFIO);
         return -EFIO;
+    }
 
     return SUCCESS;
 }
@@ -71,19 +96,28 @@ int load_pcap_rechdr_pure(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr){
 int load_pcap_recdata(FILE *fp, pcaprec_data **p_pcap_recdata, uint32_t cnt){
     int err_code = SUCCESS;
 
-    if(!fp)
+    if(!fp){
+        raise_except(ERR_NULL(fp), -EINVAL);
         return -EINVAL;
+    }
 
-    if((err_code = load_pcap_recdata_pure(fp, p_pcap_recdata, cnt)))
+    if((err_code = load_pcap_recdata_pure(fp, p_pcap_recdata, cnt))){
+        raise_except(ERR_CALL(load_pcap_rechdr_pure), err_code);
         return err_code;
+    }
 
-    fseek(fp, sizeof(struct pcaprec_hdr_s), SEEK_CUR);
+    if(fseek(fp, sizeof(struct pcaprec_hdr_s), SEEK_CUR)){
+        raise_except(ERR_CALL_LIBC(fseek), -EFIO);
+        return -EFIO;
+    }
     return err_code;
 }
 
 int load_pcap_recdata_pure(FILE *fp, pcaprec_data **p_pcap_recdata, uint32_t cnt){
-    if(*p_pcap_recdata == NULL)
+    if(!(fp && *p_pcap_recdata)){
+        raise_except(ERR_NULL(fp|p_pcap_recdata), -EINVAL);
         return -EINVAL;
+    }
 
     if(fread(*p_pcap_recdata, 1, cnt, fp) != cnt){
         free_ptr(p_pcap_recdata);

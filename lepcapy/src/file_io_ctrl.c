@@ -1,25 +1,35 @@
+#include "exception_ctrl.h"
 #include "file_io_ctrl.h"
 
 static pthread_t t_thread;
+static unsigned long file_io_cnt = 0;
 
 int thread_file_io(FILE *fp){
     int err_code = SUCCESS;
     pthread_attr_t t_attr;
     struct sched_param t_param;
 
-    if(p_pktm == NULL)
+    if(p_pktm == NULL){
+        raise_except(ERR_NULL(p_pktm), -EINVAL);
         return -ENULL;
+    }
 
-    if((err_code = __file_io_init(fp)))
+    if((err_code = __file_io_init(fp))){
+        raise_except(ERR_CALL_INTERNAL(__file_io_init), err_code);
         return err_code;
+    }
 
+    //TODO : Add Err Ctrl
     pthread_attr_init(&t_attr);
     pthread_attr_getschedparam(&t_attr, &t_param);
     t_param.__sched_priority = sched_get_priority_max(SCHED_FIFO);
     pthread_attr_setschedparam(&t_attr, &t_param);
     pthread_attr_setschedpolicy(&t_attr, SCHED_FIFO);
-    if(pthread_create(&t_thread, &t_attr, __thread_file_io, (void *)fp))
+    //
+    if(pthread_create(&t_thread, &t_attr, __thread_file_io, (void *)fp)){
+        raise_except(ERR_CALL_LIBC(pthread_create), -ETHREAD);
         return -ETHREAD;
+    }
 
     while(queue_current_size() < NETIO_QUEUING_SIZE){
         sleep(0);
@@ -42,13 +52,20 @@ void *__thread_file_io(void *file_ptr){
 
     while(1){
         err_code = __thread_file_enqueue((FILE*)file_ptr);
-        if(err_code == -EQUEUE){
-            err_code = SUCCESS;
-            sched_yield();
-            continue;
-        }
-        else if(err_code)
+        if(err_code){
+            if(err_code == -EQUEUE){
+                err_code = SUCCESS;
+                sched_yield();
+                continue;
+            }
+            else if(err_code == -EFIO)
+                if(feof((FILE*)file_ptr))
+                    err_code = SUCCESS;
+
+            __debug__prtn_io_cnt(file_io_cnt);
+            raise_except(ERR_THREAD_INTERNAL_IWORK(__thread_file_io, __thread_file_enqueue), err_code);
             break;
+        }
         //TODO : Need Consumer
     }
     io_interact_flag = 0;
@@ -65,8 +82,12 @@ int __thread_file_enqueue(FILE *fp){
     int err_code = SUCCESS;
     struct queue_node_s tmp_node;
 
-    if(!fp)
+    file_io_cnt++;
+
+    if(!fp){
+        raise_except(ERR_NULL(fp), -EINVAL);
         return -EINVAL;
+    }
 
     lock_queue_spinlock();
     if(queue_round_tail((queue_list.rear + 1)) == queue_list.front){
@@ -75,8 +96,10 @@ int __thread_file_enqueue(FILE *fp){
     }
     unlock_queue_spinlock();
 
-    if((err_code = __file_io_read(fp, &tmp_node)))
+    if((err_code = __file_io_read(fp, &tmp_node))){
+        raise_except(ERR_CALL_INTERNAL(__file_io_read), err_code);
         return err_code;
+    }
 
     __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
 
@@ -90,6 +113,7 @@ int __thread_file_enqueue(FILE *fp){
             err_code = SUCCESS;
             goto drop;
         }
+        raise_except(ERR_CALL_INTERNAL(__proto_parse_seq), err_code);
         return err_code;
     }
 
@@ -110,38 +134,55 @@ int __file_io_init(FILE *fp){
 
     fseek(fp, 0, SEEK_SET);
 
-    if((err_code = load_pcap_format(fp, &tmp_pcaphdr)))
+    if((err_code = load_pcap_format(fp, &tmp_pcaphdr))){
+        raise_except(ERR_CALL(load_pcap_format), err_code);
         return err_code;
+    }
 
     queue_list.max_len = tmp_pcaphdr.snaplen;
 
-    if((err_code = load_pcap_rechdr_pure(fp, &tmp_rechdr)))
+    if((err_code = load_pcap_rechdr_pure(fp, &tmp_rechdr))){
+        raise_except(ERR_CALL(load_pcap_rechdr_pure), err_code);
         return err_code;
+    }
 
     fseek(fp, -sizeof(struct pcaprec_hdr_s), SEEK_CUR);
 
     __set_relative_tv(tmp_rechdr.tv_sec, tmp_rechdr.tv_usec);
 
     //TODO : Add Network Access Layer detection
-    if((err_code = ether_operations.pkt_minit(p_pktm, env_pktm.if_name)))
+    if((err_code = ether_operations.pkt_minit(p_pktm, env_pktm.if_name))){
+        raise_except(ERR_CALL_PKTM(ether, pktm_minit), err_code);
         goto err;
-    if((err_code = ether_operations.pkt_get_naddr(p_pktm, env_pktm.eth_addr.eth_saddr)))
+    }
+    if((err_code = ether_operations.pkt_get_naddr(p_pktm, env_pktm.eth_addr.eth_saddr))){
+        raise_except(ERR_CALL_PKTM(ether, pkt_get_naddr), err_code);
         goto err;
-    if((err_code = ether_operations.pkt_get_iaddr(p_pktm, &(env_pktm.ipv4_addr.saddr))))
+    }
+    if((err_code = ether_operations.pkt_get_iaddr(p_pktm, &(env_pktm.ipv4_addr.saddr)))){
+        raise_except(ERR_CALL_PKTM(ether, pkt_get_iaddr), err_code);
         goto err;
+    }
 
-    if((err_code = ether_chain.proto_get_obj(&ether_chain, &p_proto_obj)))
+    if((err_code = ether_chain.proto_get_obj(&ether_chain, &p_proto_obj))){
+        raise_except(ERR_CALL_PROTO(ether, proto_get_obj), err_code);
         goto err;
+    }
+
     memcpy(ETH_PTR(p_proto_obj)->eth_saddr, env_pktm.eth_addr.eth_saddr, ETH_ALEN);
     memcpy(ETH_PTR(p_proto_obj)->eth_daddr, "\0\0\0\0\0\0", ETH_ALEN);
 
-    if((err_code = ipv4_chain.proto_get_obj(&ipv4_chain, &p_proto_obj)))
+    if((err_code = ipv4_chain.proto_get_obj(&ipv4_chain, &p_proto_obj))){
+        raise_except(ERR_CALL_PROTO(ipv4, proto_get_obj), err_code);
         goto err;
+    }
     IPV4_PTR(p_proto_obj)->saddr = env_pktm.ipv4_addr.saddr;
     IPV4_PTR(p_proto_obj)->daddr = env_pktm.ipv4_addr.daddr;
 
-    if((err_code = ether_chain.proto_set_ulayer(&ether_chain, &ipv4_chain)))
+    if((err_code = ether_chain.proto_set_ulayer(&ether_chain, &ipv4_chain))){
+        raise_except(ERR_CALL_PROTO(ether, proto_set_ulayer), err_code);
         goto err;
+    }
 
     err:
     return err_code;
@@ -153,8 +194,10 @@ int __file_io_read(FILE *fp, struct queue_node_s* tmp_node){
 
     if((err_code = load_pcap_record(fp,
             &(tmp_node->pcaprec_info),
-            &(tmp_node->pcaprec_buf), queue_list.max_len)))
+            &(tmp_node->pcaprec_buf), queue_list.max_len))){
+        raise_except(ERR_CALL(load_pcap_record), err_code);
         return err_code;
+    }
 
     temp_ptr = tmp_node->pcaprec_buf;
     tmp_node->head = temp_ptr;
@@ -168,12 +211,16 @@ int __proto_parse_seq(struct queue_node_s* tmp_node){
     int err_code = SUCCESS;
     uint16_t ether_type = 0;
 
-    if((err_code = ether_get_uptype(tmp_node->pcaprec_buf, &ether_type)))
+    if((err_code = ether_get_uptype(tmp_node->pcaprec_buf, &ether_type))){
+        raise_except(ERR_CALL(ether_get_uptype), err_code);
         goto err;
+    }
     if(ether_type != ETH_P_IP)
         return __EDROP;
-    if((err_code = ether_chain.proto_apply_chain(&ether_chain, tmp_node->pcaprec_buf)))
+    if((err_code = ether_chain.proto_apply_chain(&ether_chain, tmp_node->pcaprec_buf))){
+        raise_except(ERR_CALL_PROTO(ether, proto_apply_chain), err_code);
         goto err;
+    }
 
     err:
     return err_code;
