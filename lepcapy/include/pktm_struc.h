@@ -62,12 +62,8 @@ struct pktm_operation_s{
 
     ssize_t (*pkt_send)(struct pktm_object_s * const pktm, uint8_t * const prot_buf, const ssize_t prot_len, void *args);
 
-//    int (*pkt_init_protbuf)(struct pktm_object_s * const pktm, uint8_t * const buf, const ssize_t cnt, void *prot_addr);
     int (*pkt_get_naddr)(struct pktm_object_s * const pktm, void * const addr);
     int (*pkt_get_iaddr)(struct pktm_object_s * const pktm, void * const addr);
-//    int (*pkt_get_header)(struct pktm_object_s * const pktm, const void * p_protbuf);
-//    int (*pkt_get_payload)(struct pktm_object_s * const pktm, const void * p_protbuf);
-
     int (*pkt_ctl)(struct pktm_object_s * pktm, const int ctl_num, void *args);
 };
 

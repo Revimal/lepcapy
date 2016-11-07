@@ -1,4 +1,9 @@
+#include "exception_ctrl.h"
 #include "proto_ethernetII.h"
+
+static int ether_get_obj(struct proto_chain_s * const protm, void **ether_obj);
+static int ether_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * const u_layer);
+static int ether_apply_chain(struct proto_chain_s * const protm, uint8_t * const ether_buf);
 
 static struct proto_ether obj_ether;
 struct proto_chain_s ether_chain = {
@@ -11,32 +16,38 @@ struct proto_chain_s ether_chain = {
     ether_apply_chain,      //proto_apply_chain
 };
 
-int ether_get_obj(struct proto_chain_s * const protm, void **ether_obj){
-    if(!protm)
+static int ether_get_obj(struct proto_chain_s * const protm, void **ether_obj){
+    if(!protm){
+        raise_except(ERR_NULL(protm), -EINVAL);
         return -EINVAL;
+    }
 
     *ether_obj = protm->__proto_obj;
 
     return SUCCESS;
 }
 
-int ether_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * const u_layer){
-    if(!(protm && u_layer))
+static int ether_set_ulayer(struct proto_chain_s * const protm, struct proto_chain_s * const u_layer){
+    if(!(protm && u_layer)){
+        raise_except(ERR_NULL(protm|u_layer), -EINVAL);
         return -EINVAL;
+    }
 
     protm->__u_layer = u_layer;
 
     return SUCCESS;
 }
 
-int ether_apply_chain(struct proto_chain_s * const protm, uint8_t * const ether_buf){
-    int err = SUCCESS, i = 0;
+static int ether_apply_chain(struct proto_chain_s * const protm, uint8_t * const ether_buf){
+    int err_code = SUCCESS, i = 0;
     struct proto_ether *p_ether_obj = NULL;
     struct ether_header *ether_hdr = NULL;
     uint8_t *ether_payload = NULL;
 
-    if(!(protm && ether_buf))
+    if(!(protm && ether_buf)){
+        raise_except(ERR_NULL(protm|ether_buf), -EINVAL);
         return -EINVAL;
+    }
 
     p_ether_obj = ETH_PTR(protm->__proto_obj);
     ether_hdr = (struct ether_header *)ether_buf;
@@ -48,21 +59,28 @@ int ether_apply_chain(struct proto_chain_s * const protm, uint8_t * const ether_
     for(i = 0; i < ETH_ALEN; ++i)
         ether_hdr->ether_dhost[i] = p_ether_obj->eth_daddr[i];
 
-    if(protm->__u_layer)
-        err = protm->__u_layer->proto_apply_chain(protm->__u_layer, ether_payload);
+    if(protm->__u_layer){
+        err_code = protm->__u_layer->proto_apply_chain(protm->__u_layer, ether_payload);
+        if(err_code)
+            raise_except(ERR_CALL_PROTO(ether, proto_apply_chain), err_code);
+    }
 
-    return err;
+    return err_code;
 }
 
 int ether_parse_str(char *eth_str, uint8_t *dst_ptr){
     int i = 0;
 
-    if(!(eth_str && dst_ptr) || *eth_str == '\0')
+    if(!(eth_str && dst_ptr) || *eth_str == '\0'){
+        raise_except(ERR_NULL(eth_str|dst_ptr), -EINVAL);
         return -EINVAL;
+    }
+
 
     for(i = 0; i < ETH_ALEN; ++i){
         if(eth_str[i] == '\0'){
             memset(dst_ptr, '\0', ETH_ALEN);
+            raise_except(ERR_INVAL(eth_str), -EINVAL);
             return -EINVAL;
         }
 
@@ -76,8 +94,10 @@ int ether_parse_str(char *eth_str, uint8_t *dst_ptr){
 int ether_get_uptype(uint8_t * const ether_buf, void * const ether_type){
     struct ether_header *ether_hdr = NULL;
 
-    if(!(ether_buf && ether_type))
+    if(!(ether_buf && ether_type)){
+        raise_except(ERR_NULL(ether_buf|ether_type), -EINVAL);
         return -EINVAL;
+    }
 
     ether_hdr = (struct ether_header *)ether_buf;
 
