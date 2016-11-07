@@ -61,14 +61,15 @@
 #define E2BIG           8   /* Argument too long */
 #define EMAGIC          9   /* Magic check fault */
 #define EQUEUE          10  /* Record queue fault */
-#define ETHREAD         11  /* Threading fault */
-#define EOVRFLW         12  /* Overflow fault */
-#define EIOCTL          13  /* Ioctl Error */
-#define ESOCK           14  /* Socket Error */
-#define EINVPF          15  /* Invalid | Non-support protocol features */
-#define EPMINIT         16  /* Initialize error on pktm */
-#define __EDROP         17  /* Dropped packet */
-#define EINTRACT        18  /* Thread interaction error */
+#define ETHREAD         10  /* Threading fault */
+#define EOVRFLW         11  /* Overflow fault */
+#define EIOCTL          12  /* Ioctl Error */
+#define ESOCK           13  /* Socket Error */
+#define EINVPF          14  /* Invalid | Non-support protocol features */
+#define EPMINIT         15  /* Initialize error on pktm */
+#define __EDROP         16  /* Dropped packet */
+#define EINTRACT        17  /* Thread interaction error */
+#define EJFRAME         18  /* Not support Jumbo-frame */
 
 /*
  * General Macro Functions

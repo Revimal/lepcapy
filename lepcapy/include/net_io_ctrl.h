@@ -2,7 +2,6 @@
 #define LEPCAPY_NET_IO_CTRL_H
 
 #include "trans_ctrl.h"
-#include "record_queue.h"
 
 /*
  *  Thread Functions
