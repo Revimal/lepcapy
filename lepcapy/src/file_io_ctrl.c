@@ -6,8 +6,6 @@ static unsigned long file_io_cnt = 0;
 
 int thread_file_io(FILE *fp){
     int err_code = SUCCESS;
-    pthread_attr_t t_attr;
-    struct sched_param t_param;
 
     if(p_pktm == NULL){
         raise_except(ERR_NULL(p_pktm), -EINVAL);
@@ -20,19 +18,13 @@ int thread_file_io(FILE *fp){
     }
 
     //TODO : Add Err Ctrl
-    pthread_attr_init(&t_attr);
-    pthread_attr_getschedparam(&t_attr, &t_param);
-    t_param.__sched_priority = sched_get_priority_max(SCHED_FIFO);
-    pthread_attr_setschedparam(&t_attr, &t_param);
-    pthread_attr_setschedpolicy(&t_attr, SCHED_FIFO);
-    //
-    if(pthread_create(&t_thread, &t_attr, __thread_file_io, (void *)fp)){
+    if(pthread_create(&t_thread, NULL, __thread_file_io, (void *)fp)){
         raise_except(ERR_CALL_LIBC(pthread_create), -ETHREAD);
         return -ETHREAD;
     }
 
     while(queue_current_size() < NETIO_QUEUING_SIZE){
-        sleep(0);
+        sched_yield();
     }
 
     io_interact_flag = 1;
@@ -58,10 +50,7 @@ void *__thread_file_io(void *file_ptr){
                 sched_yield();
                 continue;
             }
-            else if(err_code == -EFIO)
-                if(feof((FILE*)file_ptr))
-                    err_code = SUCCESS;
-
+            else
             __debug__prtn_io_cnt(file_io_cnt);
             raise_except(ERR_THREAD_INTERNAL_IWORK(__thread_file_io, __thread_file_enqueue), err_code);
             break;
@@ -82,8 +71,6 @@ int __thread_file_enqueue(FILE *fp){
     int err_code = SUCCESS;
     struct queue_node_s tmp_node;
 
-    file_io_cnt++;
-
     if(!fp){
         raise_except(ERR_NULL(fp), -EINVAL);
         return -EINVAL;
@@ -94,6 +81,7 @@ int __thread_file_enqueue(FILE *fp){
         unlock_queue_spinlock();
         return -EQUEUE;
     }
+    file_io_cnt++;
     unlock_queue_spinlock();
 
     if((err_code = __file_io_read(fp, &tmp_node))){
@@ -104,9 +92,6 @@ int __thread_file_enqueue(FILE *fp){
     __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
 
     err_code = __proto_parse_seq(&tmp_node);
-
-//    set_relative_tv(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
-//    calc_relative_tv(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
 
     if(err_code){
         if(err_code == __EDROP){

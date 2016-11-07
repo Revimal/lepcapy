@@ -22,7 +22,7 @@ struct pktm_operation_s ether_operations = {
 };
 
 int pktm_ether_init(struct pktm_object_s * const pktm, char * const if_ifn){
-    int err = SUCCESS, i = 0;
+    int err_code = SUCCESS, i = 0;
     struct ifreq ifobj;
     struct pktm_ether_s *eth_pktm = NULL;
 
@@ -42,7 +42,7 @@ int pktm_ether_init(struct pktm_object_s * const pktm, char * const if_ifn){
 
     if((eth_pktm->sd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) == -1){
         raise_except(ERR_CALL_LIBC(socket), -ESOCK);
-        err = -ESOCK;
+        err_code = -ESOCK;
         goto sock_err;
     }
 
@@ -52,7 +52,7 @@ int pktm_ether_init(struct pktm_object_s * const pktm, char * const if_ifn){
     strncpy(ifobj.ifr_ifrn.ifrn_name, eth_pktm->eth_name, IFNAMSIZ - 1);
     if(ioctl(eth_pktm->sd, SIOCGIFINDEX, &ifobj)){
         raise_except(ERR_IOCTL(SIOCGIFINDEX), -EIOCTL);
-        err = -EIOCTL;
+        err_code = -EIOCTL;
         goto err;
     }
     eth_pktm->tx_addr.sll_ifindex = ifobj.ifr_ifru.ifru_ivalue;
@@ -61,7 +61,7 @@ int pktm_ether_init(struct pktm_object_s * const pktm, char * const if_ifn){
     strncpy(ifobj.ifr_ifrn.ifrn_name, eth_pktm->eth_name, IFNAMSIZ - 1);
     if(ioctl(eth_pktm->sd, SIOCGIFHWADDR, &ifobj)){
         raise_except(ERR_IOCTL(SIOCGIFHWADDR), -EIOCTL);
-        err = -EIOCTL;
+        err_code = -EIOCTL;
         goto err;
     }
 
@@ -79,7 +79,7 @@ err:
     }
 
 sock_err: success:
-    return err;
+    return err_code;
 }
 
 void pktm_ether_exit(struct pktm_object_s * const pktm){
@@ -154,7 +154,7 @@ static int pktm_ether_get_naddr(struct pktm_object_s * const pktm, void * const 
 }
 
 static int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const ipa){
-    int err = SUCCESS;
+    int err_code = SUCCESS;
     struct pktm_ether_s *eth_pktm = NULL;
     struct ifreq ifobj;
 
@@ -174,7 +174,7 @@ static int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const 
     strncpy(ifobj.ifr_ifrn.ifrn_name, eth_pktm->eth_name, IFNAMSIZ - 1);
     if(ioctl(eth_pktm->sd, SIOCGIFADDR, &ifobj)){
         raise_except(ERR_IOCTL(SIOCGIFADDR), -EIOCTL);
-        err = -EIOCTL;
+        err_code = -EIOCTL;
         goto err;
     }
 
@@ -182,7 +182,7 @@ static int pktm_ether_get_iaddr(struct pktm_object_s * const pktm, void * const 
             ((struct sockaddr_in *)&(ifobj.ifr_ifru.ifru_addr))->sin_addr.s_addr;
 
     err:
-    return err;
+    return err_code;
 }
 
 static int pktm_ether_ctl(struct pktm_object_s * pktm, const int ctl_num, void *dummy){

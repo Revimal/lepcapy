@@ -43,6 +43,8 @@ int main(int argc, char *argv[])
     /*
      * Start of Routine
      */
+    __debug__chkpoint(routine_start);
+
     queue_init();
     alloc_pktm(p_pktm);
     if((err_code = thread_file_io(fp))){
@@ -79,10 +81,12 @@ int main(int argc, char *argv[])
 
     err_code = thread_file_join();
     if(err_code){
+        __debug__chkpoint(err_thread_file);
         raise_except(ERR_CALL(thread_file_join), err_code);
     }
     err_code = thread_net_join();
     if(err_code){
+        __debug__chkpoint(err_thread_net);
         raise_except(ERR_CALL(thread_net_join), err_code);
     }
     goto out;
@@ -91,6 +95,7 @@ int main(int argc, char *argv[])
     err_code = thread_file_join();
 
     out:
+    __debug__chkpoint(clean);
     free_pktm(p_pktm);
     fclose(fp);
     return err_code;

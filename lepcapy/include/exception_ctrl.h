@@ -25,15 +25,21 @@
 
 #define ERR_UNK() "unkwown_err"
 
+#define prtn_io_warn(_warn)     \
+    printf("#Warn : "#_warn"\n");
+
 #ifndef NDEBUG
     #define __debug__prtn_io_cnt(_io_cnt)   \
         printf("#Current <"#_io_cnt"> : %lu\n", _io_cnt);
     #define raise_except(_at, _err_no)                                                                  \
         printf("#Exception raised at %s\n\t*Line : %u\n\t*Function : %s\n\t*Additional : %s - %d\n\n",    \
                __FILE__, __LINE__, __func__, _at, _err_no);
+    #define __debug__chkpoint(_chkpoint)   \
+        printf("#Debug Checkpoint - "#_chkpoint"\n\n");
 #else
     #define __debug__prtn_io_cnt(_io_cnt)
     #define raise_except(_at, _err_no)
+    #define __debug__prtn_chkpoint(_chkpoint)
 #endif
 
 #endif //LECAPY_EXCEPTION_CTRL_H

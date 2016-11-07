@@ -120,6 +120,7 @@ int load_pcap_recdata_pure(FILE *fp, pcaprec_data **p_pcap_recdata, uint32_t cnt
     }
 
     if(fread(*p_pcap_recdata, 1, cnt, fp) != cnt){
+        raise_except(ERR_CALL_LIBC(fread), -EFIO);
         free_ptr(p_pcap_recdata);
         return -EFIO;
     }

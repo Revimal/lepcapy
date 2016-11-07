@@ -20,15 +20,17 @@ int thread_net_io(){
 
     //TODO : Add Err Ctrl
     pthread_attr_init(&t_attr);
+    pthread_attr_setinheritsched(&t_attr, PTHREAD_EXPLICIT_SCHED);
     pthread_attr_getschedparam(&t_attr, &t_param);
-    t_param.__sched_priority = sched_get_priority_min(SCHED_FIFO);
-    pthread_attr_setschedparam(&t_attr, &t_param);
+    t_param.__sched_priority = sched_get_priority_max(SCHED_FIFO);
     pthread_attr_setschedpolicy(&t_attr, SCHED_FIFO);
+    pthread_attr_setschedparam(&t_attr, &t_param);
     //
-    if(pthread_create(&t_thread, NULL, __thread_net_io, NULL)){
+    if(pthread_create(&t_thread, &t_attr, __thread_net_io, NULL)){
         raise_except(ERR_CALL_LIBC(pthread_create), -ETHREAD);
         return -ETHREAD;
     }
+    pthread_attr_destroy(&t_attr);
 
     return SUCCESS;
 }
@@ -69,17 +71,16 @@ int __thread_net_dequeue(){
     int tx_err = SUCCESS;
     struct queue_node_s tmp_node;
 
-    net_io_cnt++;
-
     lock_queue_spinlock();
     if(queue_list.front == queue_list.rear){
         unlock_queue_spinlock();
         return -EQUEUE;
     }
 
+    net_io_cnt++;
     tmp_node = queue_elem_front();
 
-    __nwait/*_release_lock*/(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
+    __nwait_release_lock(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
 
     if((tx_err = ether_operations.pkt_send(p_pktm, tmp_node.pcaprec_buf,
              tmp_node.pcaprec_info.inc_len, NULL)) < 0){
