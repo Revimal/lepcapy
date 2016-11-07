@@ -39,7 +39,7 @@
 #else
     #define __debug__prtn_io_cnt(_io_cnt)
     #define raise_except(_at, _err_no)
-    #define __debug__prtn_chkpoint(_chkpoint)
+    #define __debug__chkpoint(_chkpoint)
 #endif
 
 #endif //LECAPY_EXCEPTION_CTRL_H
