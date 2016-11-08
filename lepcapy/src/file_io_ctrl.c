@@ -2,7 +2,7 @@
 #include "file_io_ctrl.h"
 
 static pthread_t t_thread;
-static unsigned long file_io_cnt = 0;
+static unsigned long file_io_cnt = 1;
 
 int thread_file_io(FILE *fp){
     int err_code = SUCCESS;
@@ -54,12 +54,12 @@ void *__thread_file_io(void *file_ptr){
                 err_code = SUCCESS;
                 break;
             }
-
-            __debug__prtn_io_cnt(file_io_cnt);
             raise_except(ERR_THREAD_INTERNAL_IWORK(__thread_file_io, __thread_file_enqueue), err_code);
             break;
         }
     }
+
+    __debug__prtn_io_cnt(file_io_cnt);
     io_interact_flag = 0;
     pthread_exit((void *)(unsigned long)err_code);
 }
@@ -84,7 +84,6 @@ int __thread_file_enqueue(FILE *fp){
         unlock_queue_spinlock();
         return -EQUEUE;
     }
-    file_io_cnt++;
     unlock_queue_spinlock();
 
     if((err_code = __file_io_read(fp, &tmp_node))){
@@ -99,6 +98,7 @@ int __thread_file_enqueue(FILE *fp){
 
     if(err_code){
         if(err_code == __EDROP){
+            free_ptr(tmp_node.pcaprec_buf);
             err_code = SUCCESS;
             goto drop;
         }
@@ -109,6 +109,7 @@ int __thread_file_enqueue(FILE *fp){
     lock_queue_spinlock();
     memcpy(&queue_elem_rear(), &tmp_node, sizeof(struct queue_node_s));
     queue_list.rear = queue_round_tail(queue_list.rear + 1);
+    file_io_cnt++;
     unlock_queue_spinlock();
 
     drop:

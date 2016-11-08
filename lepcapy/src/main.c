@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <sys/mman.h>
+
 int main(int argc, char *argv[])
 {
     int err_code = SUCCESS;
@@ -16,6 +18,8 @@ int main(int argc, char *argv[])
         printf("Usage : lepcapy [Dump file] [Interface Name] [IP Address]\n");
         return err_code;
     }
+
+    mlockall(MCL_FUTURE);
 
     strncpy(env_pktm.if_name, argv[2], IFNAMSIZ - 1);
     if((err_code = ipv4_parse_str(argv[3], &(env_pktm.ipv4_addr.daddr)))){
@@ -76,5 +80,6 @@ int main(int argc, char *argv[])
     __debug__chkpoint(clean);
     free_pktm(p_pktm);
     fclose(fp);
+    munlockall();
     return err_code;
 }

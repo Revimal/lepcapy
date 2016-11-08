@@ -38,7 +38,7 @@ int load_pcap_record(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, pcaprec_data
     if((err_code = load_pcap_rechdr_pure(fp, p_pcap_rechdr))){
         if(err_code != -__EEOF)
             raise_except(ERR_CALL(load_pcap_rechdr_pure), err_code);
-        return err_code;
+        goto out;
     }
 
     if(p_pcap_rechdr->inc_len > max_len){
@@ -49,21 +49,20 @@ int load_pcap_record(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, pcaprec_data
 
     if(!alloc_contig(*p_pcap_recdata, pcaprec_data, p_pcap_rechdr->inc_len + 1)){
         raise_except(ERR_CALL_MACRO(alloc_contig), -ENULL);
-        return -ENULL;
+        err_code = -ENULL;
+        goto out;
     }
 
     if((err_code = load_pcap_recdata_pure(fp, p_pcap_recdata, p_pcap_rechdr->inc_len))){
-        if(err_code != -__EEOF){
             raise_except(ERR_CALL(load_pcap_recdata_pure), err_code);
-            goto out;
-        }
+            goto err_free;
     }
 
-    goto success;
+    goto out;
 
-    out:
+    err_free:
     free_ptr(*p_pcap_recdata);
-    success:
+    out:
     return err_code;
 }
 

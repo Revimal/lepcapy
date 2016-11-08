@@ -2,7 +2,7 @@
 #include "net_io_ctrl.h"
 
 static pthread_t t_thread;
-static unsigned long net_io_cnt = 0;
+static unsigned long net_io_cnt = 1;
 
 int thread_net_io(){
     pthread_attr_t t_attr;
@@ -59,11 +59,11 @@ void *__thread_net_io(){
             }
         }
         else if(err_code){
-            __debug__prtn_io_cnt(net_io_cnt);
             raise_except(ERR_THREAD_INTERNAL_IWORK(__thread_net_io, __thread_file_enqueue), err_code);
             break;
         }
     }
+    __debug__prtn_io_cnt(net_io_cnt);
     pthread_exit((void *)(unsigned long)err_code);
 }
 
@@ -77,7 +77,6 @@ int __thread_net_dequeue(){
         return -EQUEUE;
     }
 
-    net_io_cnt++;
     tmp_node = queue_elem_front();
 
     __nwait_release_lock(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
@@ -91,6 +90,7 @@ int __thread_net_dequeue(){
 
     free_ptr(queue_elem_front().pcaprec_buf);
     queue_list.front = queue_round_tail(queue_list.front + 1);
+    net_io_cnt++;
     unlock_queue_spinlock();
 
     return SUCCESS;
