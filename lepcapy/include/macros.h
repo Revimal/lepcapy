@@ -70,6 +70,7 @@
 #define __EDROP         16  /* Dropped packet */
 #define EINTRACT        17  /* Thread interaction error */
 #define EJFRAME         18  /* Not support Jumbo-frame */
+#define __EEOF          19  /* End of file */
 
 /*
  * General Macro Functions

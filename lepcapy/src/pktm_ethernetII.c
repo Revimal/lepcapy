@@ -12,11 +12,8 @@ struct pktm_operation_s ether_operations = {
 
     pktm_ether_send,            //pkt_send
 
-//    pktm_ether_init_etherbuf,    //pkt_apply_protbuf
     pktm_ether_get_naddr,       //pkt_get_addr
     pktm_ether_get_iaddr,       //pkt_get_iaddr
-//    pktm_ether_get_header,      //pkt_get_header
-//    pktm_ether_get_payload,     //pkt_get_payload
 
     pktm_ether_ctl,            //pkt_ctl
 };

@@ -50,12 +50,15 @@ void *__thread_file_io(void *file_ptr){
                 sched_yield();
                 continue;
             }
-            else
+            else if(err_code == -__EEOF){
+                err_code = SUCCESS;
+                break;
+            }
+
             __debug__prtn_io_cnt(file_io_cnt);
             raise_except(ERR_THREAD_INTERNAL_IWORK(__thread_file_io, __thread_file_enqueue), err_code);
             break;
         }
-        //TODO : Need Consumer
     }
     io_interact_flag = 0;
     pthread_exit((void *)(unsigned long)err_code);
@@ -85,7 +88,8 @@ int __thread_file_enqueue(FILE *fp){
     unlock_queue_spinlock();
 
     if((err_code = __file_io_read(fp, &tmp_node))){
-        raise_except(ERR_CALL_INTERNAL(__file_io_read), err_code);
+        if(err_code != -__EEOF)
+            raise_except(ERR_CALL_INTERNAL(__file_io_read), err_code);
         return err_code;
     }
 
@@ -180,7 +184,8 @@ int __file_io_read(FILE *fp, struct queue_node_s* tmp_node){
     if((err_code = load_pcap_record(fp,
             &(tmp_node->pcaprec_info),
             &(tmp_node->pcaprec_buf), queue_list.max_len))){
-        raise_except(ERR_CALL(load_pcap_record), err_code);
+        if(err_code != -__EEOF)
+            raise_except(ERR_CALL(load_pcap_record), err_code);
         return err_code;
     }
 
