@@ -20,8 +20,12 @@
  */
 int thread_file_io(FILE *fp);
 int thread_file_join();
+
+pthread_t *thread_file_getthp();
+
 void *__thread_file_io(void *file_ptr);
 int __thread_file_enqueue(FILE *fp);
+void __thread_file_destructor();
 
 /*
  * File I/O Functions

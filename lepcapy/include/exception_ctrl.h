@@ -22,11 +22,9 @@
 #define ERR_LCK_ULCK(_at) "lock_unlock_<"#_at">"
 
 #define ERR_IOCTL(_at) "ioctl_<"#_at">"
+#define ERR_PROTO(_cause, _at) "protocol_err_["#_cause"]_<"#_at">"
 
 #define ERR_UNK() "unkwown_err"
-
-#define prtn_io_warn(_warn)     \
-    printf("#Warn : "#_warn"\n\n");
 
 #ifndef NDEBUG
     #define __debug__prtn_io_cnt(_io_cnt)   \

@@ -19,7 +19,7 @@
 
 #define alloc_pktm(pktm)                                                            \
     do{                                                                             \
-        pktm = (struct pktm_object_s *)calloc(1, sizeof(struct pktm_object_s));     \
+        pktm = (struct pktm_object_s *)malloc(sizeof(struct pktm_object_s));     \
         pktm->__init = 0;                                                             \
     }while(0)
 
@@ -60,7 +60,7 @@ struct pktm_operation_s{
     int (*pkt_minit)(struct pktm_object_s * const pktm, char * const if_ifn);
     void (*pkt_mexit)(struct pktm_object_s * const pktm);
 
-    ssize_t (*pkt_send)(struct pktm_object_s * const pktm, uint8_t * const prot_buf, const ssize_t prot_len, void *args);
+    int (*pkt_send)(struct pktm_object_s * const pktm, uint8_t * const prot_buf, const ssize_t prot_len, void *args);
 
     int (*pkt_get_naddr)(struct pktm_object_s * const pktm, void * const addr);
     int (*pkt_get_iaddr)(struct pktm_object_s * const pktm, void * const addr);

@@ -2,7 +2,7 @@
 #include "file_io_ctrl.h"
 
 static pthread_t t_thread;
-static unsigned long file_io_cnt = 1;
+static unsigned long file_io_cnt = 0;
 
 int thread_file_io(FILE *fp){
     int err_code = SUCCESS;
@@ -36,11 +36,20 @@ int thread_file_join(){
     unsigned long ret_thread = SUCCESS;
 
     pthread_join(t_thread, (void **)&ret_thread);
+    if(ret_thread == (unsigned long)PTHREAD_CANCELED)
+        ret_thread = -EINTRACT;
+
     return (int)ret_thread;
+}
+
+pthread_t *thread_file_getthp(){
+    return &t_thread;
 }
 
 void *__thread_file_io(void *file_ptr){
     int err_code = SUCCESS;
+
+    pthread_cleanup_push(__thread_file_destructor, (void *)NULL);
 
     while(1){
         err_code = __thread_file_enqueue((FILE*)file_ptr);
@@ -61,6 +70,9 @@ void *__thread_file_io(void *file_ptr){
 
     __debug__prtn_io_cnt(file_io_cnt);
     io_interact_flag = 0;
+    pthread_cleanup_pop(0);
+
+    usleep(1);
     pthread_exit((void *)(unsigned long)err_code);
 }
 
@@ -94,13 +106,10 @@ int __thread_file_enqueue(FILE *fp){
 
     __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
 
-    err_code = __proto_parse_seq(&tmp_node);
-
-    if(err_code){
+    if((err_code = __proto_parse_seq(&tmp_node))){
         if(err_code == __EDROP){
             free_ptr(tmp_node.pcaprec_buf);
-            err_code = SUCCESS;
-            goto drop;
+            return SUCCESS;
         }
         raise_except(ERR_CALL_INTERNAL(__proto_parse_seq), err_code);
         return err_code;
@@ -112,8 +121,12 @@ int __thread_file_enqueue(FILE *fp){
     file_io_cnt++;
     unlock_queue_spinlock();
 
-    drop:
-    return err_code;
+    return SUCCESS;
+}
+
+void __thread_file_destructor(){
+    __debug__prtn_io_cnt(file_io_cnt);
+    io_interact_flag = 0;
 }
 
 int __file_io_init(FILE *fp){
@@ -171,7 +184,6 @@ int __file_io_init(FILE *fp){
 
     if((err_code = ether_chain.proto_set_ulayer(&ether_chain, &ipv4_chain))){
         raise_except(ERR_CALL_PROTO(ether, proto_set_ulayer), err_code);
-        goto err;
     }
 
     err:

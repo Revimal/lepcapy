@@ -2,9 +2,9 @@
 #include "net_io_ctrl.h"
 
 static pthread_t t_thread;
-static unsigned long net_io_cnt = 1;
+static unsigned long net_io_cnt = 0;
 
-int thread_net_io(){
+int thread_net_io(pthread_t *th_file){
     pthread_attr_t t_attr;
     struct sched_param t_param;
 
@@ -26,7 +26,7 @@ int thread_net_io(){
     pthread_attr_setschedpolicy(&t_attr, SCHED_FIFO);
     pthread_attr_setschedparam(&t_attr, &t_param);
     //
-    if(pthread_create(&t_thread, &t_attr, __thread_net_io, NULL)){
+    if(pthread_create(&t_thread, &t_attr, __thread_net_io, (void *)th_file)){
         raise_except(ERR_CALL_LIBC(pthread_create), -ETHREAD);
         return -ETHREAD;
     }
@@ -42,7 +42,7 @@ int thread_net_join(){
     return (int)ret_thread;
 }
 
-void *__thread_net_io(){
+void *__thread_net_io(void *th_file){
     int err_code = SUCCESS;
 
     while(1){
@@ -60,15 +60,19 @@ void *__thread_net_io(){
         }
         else if(err_code){
             raise_except(ERR_THREAD_INTERNAL_IWORK(__thread_net_io, __thread_file_enqueue), err_code);
+            pthread_cancel(*((pthread_t *)th_file));
             break;
         }
     }
+
     __debug__prtn_io_cnt(net_io_cnt);
+
+    usleep(1);
     pthread_exit((void *)(unsigned long)err_code);
 }
 
 int __thread_net_dequeue(){
-    int tx_err = SUCCESS;
+    int err_code = SUCCESS;
     struct queue_node_s tmp_node;
 
     lock_queue_spinlock();
@@ -81,11 +85,11 @@ int __thread_net_dequeue(){
 
     __nwait_release_lock(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
 
-    if((tx_err = ether_operations.pkt_send(p_pktm, tmp_node.pcaprec_buf,
-             tmp_node.pcaprec_info.inc_len, NULL)) < 0){
+    if((err_code = ether_operations.pkt_send(p_pktm, tmp_node.pcaprec_buf,
+             tmp_node.pcaprec_info.inc_len, NULL))){
         unlock_queue_spinlock();
-        raise_except(ERR_CALL_PKTM(ether, pkt_send), tx_err);
-        return tx_err;
+        raise_except(ERR_CALL_PKTM(ether, pkt_send), err_code);
+        return err_code;
     }
 
     free_ptr(queue_elem_front().pcaprec_buf);

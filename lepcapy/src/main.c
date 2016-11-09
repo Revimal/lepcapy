@@ -27,8 +27,7 @@ int main(int argc, char *argv[])
         return err_code;
     }
 
-    fp = fopen(argv[1], "rb");
-    if(fp == NULL){
+    if(!(fp = fopen(argv[1], "rb"))){
         raise_except(ERR_CALL_LIBC(fopen), -ENULL);
         return -ENULL;
     }
@@ -55,11 +54,11 @@ int main(int argc, char *argv[])
         raise_except(ERR_CALL(thread_file_io), err_code);
         goto out;
     }
-    if((err_code = thread_net_io())){
+    if((err_code = thread_net_io(thread_file_getthp()))){
         raise_except(ERR_CALL(thread_net_io), err_code);
-        goto err_net_th;
+        pthread_cancel(*thread_file_getthp());
+        goto out;
     };
-
 
     err_code = thread_file_join();
     if(err_code){
@@ -71,15 +70,12 @@ int main(int argc, char *argv[])
         __debug__chkpoint(err_thread_net);
         raise_except(ERR_CALL(thread_net_join), err_code);
     }
-    goto out;
-
-    err_net_th:
-    err_code = thread_file_join();
 
     out:
     __debug__chkpoint(clean);
     free_pktm(p_pktm);
     fclose(fp);
+
     munlockall();
     return err_code;
 }

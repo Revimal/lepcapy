@@ -12,7 +12,6 @@
  */
 #define MAX_QUEUE_SIZE 4096
 #define NETIO_QUEUING_SIZE 1024
-#define NETIO_QUEING_WARN 64
 
 /*
  * General Macros
