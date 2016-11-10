@@ -32,7 +32,7 @@ int thread_file_io(FILE *fp){
     }
 
     while(queue_current_size() < NETIO_QUEUING_SIZE){
-        usleep(1);
+        usleep(0);
     }
 
     io_interact_flag = 1;
@@ -64,7 +64,6 @@ void *__thread_file_io(void *file_ptr){
         if(err_code){
             if(err_code == -EQUEUE){
                 err_code = SUCCESS;
-                usleep(1);
                 continue;
             }
             else if(err_code == -__EEOF){
@@ -113,7 +112,7 @@ int __thread_file_enqueue(FILE *fp){
     }
 
     if((err_code = __proto_parse_seq(&tmp_node))){
-        if(err_code == __EDROP){
+        if(err_code == -__EDROP){
             file_io_dropped++;
             free_ptr(tmp_node.pcaprec_buf);
             return SUCCESS;
@@ -127,8 +126,8 @@ int __thread_file_enqueue(FILE *fp){
     lock_queue_spinlock();
     memcpy(&queue_elem_rear(), &tmp_node, sizeof(struct queue_node_s));
     queue_list.rear = queue_round_tail(queue_list.rear + 1);
-    file_io_cnt++;
     unlock_queue_spinlock();
+    file_io_cnt++;
 
     return SUCCESS;
 }
@@ -228,7 +227,7 @@ int __proto_parse_seq(struct queue_node_s* tmp_node){
         goto err;
     }
     if(ether_type != ETH_P_IP)
-        return __EDROP;
+        return -__EDROP;
     if((err_code = ether_chain.proto_apply_chain(&ether_chain, tmp_node->pcaprec_buf))){
         raise_except(ERR_CALL_PROTO(ether, proto_apply_chain), err_code);
         goto err;

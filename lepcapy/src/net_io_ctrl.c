@@ -120,8 +120,8 @@ int __thread_net_dequeue(){
 
     free_ptr(queue_elem_front().pcaprec_buf);
     queue_list.front = queue_round_tail(queue_list.front + 1);
-    net_io_cnt++;
     unlock_queue_spinlock();
+    net_io_cnt++;
 
     return SUCCESS;
 }
