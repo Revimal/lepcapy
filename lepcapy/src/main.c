@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     queue_init();
     alloc_pktm(p_pktm);
 
-    printf("[*] Start Replay...\n\n");
+    printf("\n[*] Start Replay...\n\n");
 
     if((err_code = thread_file_io(fp))){
         raise_except(ERR_CALL(thread_file_io), err_code);
