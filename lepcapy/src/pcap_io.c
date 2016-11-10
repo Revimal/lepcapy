@@ -1,12 +1,17 @@
 #include "exception_ctrl.h"
 #include "pcap_io.h"
 
-/*
- *
- * TODO : Buffer Overflow Check
- * - Complete (2016/10/25)
- *
- */
+#include <stdio.h>
+
+static inline int fread_chk_eof(void *ptr, size_t size, size_t num, FILE *fp){
+    if(fread(ptr, size, num, fp) != num){
+        if(feof(fp))
+            return -__EEOF;
+        else
+            return -EFIO;
+    }
+    return SUCCESS;
+}
 
 int load_pcap_format(FILE *fp, struct pcap_hdr_s *p_pcap_hdr){
     if(!(fp && p_pcap_hdr)){
@@ -31,8 +36,9 @@ int load_pcap_record(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, pcaprec_data
     int err_code = SUCCESS;
 
     if((err_code = load_pcap_rechdr_pure(fp, p_pcap_rechdr))){
-        raise_except(ERR_CALL(load_pcap_rechdr_pure), err_code);
-        return err_code;
+        if(err_code != -__EEOF)
+            raise_except(ERR_CALL(load_pcap_rechdr_pure), err_code);
+        goto out;
     }
 
     if(p_pcap_rechdr->inc_len > max_len){
@@ -43,19 +49,20 @@ int load_pcap_record(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, pcaprec_data
 
     if(!alloc_contig(*p_pcap_recdata, pcaprec_data, p_pcap_rechdr->inc_len + 1)){
         raise_except(ERR_CALL_MACRO(alloc_contig), -ENULL);
-        return -ENULL;
-    }
-
-    if((err_code = load_pcap_recdata_pure(fp, p_pcap_recdata, p_pcap_rechdr->inc_len))){
-        raise_except(ERR_CALL(load_pcap_recdata_pure), err_code);
+        err_code = -ENULL;
         goto out;
     }
 
-    goto success;
+    if((err_code = load_pcap_recdata_pure(fp, p_pcap_recdata, p_pcap_rechdr->inc_len))){
+            raise_except(ERR_CALL(load_pcap_recdata_pure), err_code);
+            goto err_free;
+    }
 
-    out:
+    goto out;
+
+    err_free:
     free_ptr(*p_pcap_recdata);
-    success:
+    out:
     return err_code;
 }
 
@@ -63,7 +70,8 @@ int load_pcap_rechdr(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, uint32_t max
     int err_code = SUCCESS;
 
     if((err_code = load_pcap_rechdr_pure(fp, p_pcap_rechdr))){
-        raise_except(ERR_CALL(load_pcap_rechdr_pure), err_code);
+        if(err_code != -__EEOF)
+            raise_except(ERR_CALL(load_pcap_rechdr_pure), err_code);
         return err_code;
     }
 
@@ -76,21 +84,25 @@ int load_pcap_rechdr(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, uint32_t max
         raise_except(ERR_CALL_LIBC(fseek), -EFIO);
         return -EFIO;
     }
-    return SUCCESS;
+
+    return err_code;
 }
 
 int load_pcap_rechdr_pure(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr){
+    int err_code = SUCCESS;
+
     if(!(fp && p_pcap_rechdr)){
         raise_except(ERR_NULL(fp|p_pcap_rechdr), -EINVAL);
         return -EINVAL;
     }
 
-    if(fread(p_pcap_rechdr, sizeof(struct pcaprec_hdr_s), 1, fp) != 1){
-        raise_except(ERR_CALL_LIBC(fread), -EFIO);
-        return -EFIO;
+    if((err_code = fread_chk_eof(p_pcap_rechdr, sizeof(struct pcaprec_hdr_s), 1, fp))){
+        if(err_code != -__EEOF)
+            raise_except(ERR_CALL_LIBC(fread), -EFIO);
+        return err_code;
     }
 
-    return SUCCESS;
+    return err_code;
 }
 
 int load_pcap_recdata(FILE *fp, pcaprec_data **p_pcap_recdata, uint32_t cnt){
@@ -110,6 +122,7 @@ int load_pcap_recdata(FILE *fp, pcaprec_data **p_pcap_recdata, uint32_t cnt){
         raise_except(ERR_CALL_LIBC(fseek), -EFIO);
         return -EFIO;
     }
+
     return err_code;
 }
 

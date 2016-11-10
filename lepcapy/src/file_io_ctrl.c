@@ -3,6 +3,15 @@
 
 static pthread_t t_thread;
 static unsigned long file_io_cnt = 0;
+static unsigned long file_io_dropped = 0;
+
+unsigned long thread_file_get_cnt(){
+    return file_io_cnt;
+}
+
+unsigned long thread_file_get_dropped(){
+    return file_io_dropped;
+}
 
 int thread_file_io(FILE *fp){
     int err_code = SUCCESS;
@@ -17,14 +26,13 @@ int thread_file_io(FILE *fp){
         return err_code;
     }
 
-    //TODO : Add Err Ctrl
     if(pthread_create(&t_thread, NULL, __thread_file_io, (void *)fp)){
         raise_except(ERR_CALL_LIBC(pthread_create), -ETHREAD);
         return -ETHREAD;
     }
 
     while(queue_current_size() < NETIO_QUEUING_SIZE){
-        sched_yield();
+        usleep(1);
     }
 
     io_interact_flag = 1;
@@ -36,28 +44,43 @@ int thread_file_join(){
     unsigned long ret_thread = SUCCESS;
 
     pthread_join(t_thread, (void **)&ret_thread);
+    if(ret_thread == (unsigned long)PTHREAD_CANCELED)
+        ret_thread = -EINTRACT;
+
     return (int)ret_thread;
+}
+
+pthread_t *thread_file_getthp(){
+    return &t_thread;
 }
 
 void *__thread_file_io(void *file_ptr){
     int err_code = SUCCESS;
+
+    pthread_cleanup_push(__thread_file_destructor, (void *)NULL);
 
     while(1){
         err_code = __thread_file_enqueue((FILE*)file_ptr);
         if(err_code){
             if(err_code == -EQUEUE){
                 err_code = SUCCESS;
-                sched_yield();
+                usleep(1);
                 continue;
             }
-            else
-            __debug__prtn_io_cnt(file_io_cnt);
+            else if(err_code == -__EEOF){
+                err_code = SUCCESS;
+                break;
+            }
             raise_except(ERR_THREAD_INTERNAL_IWORK(__thread_file_io, __thread_file_enqueue), err_code);
             break;
         }
-        //TODO : Need Consumer
     }
+
+    __debug__prtn_io_cnt(file_io_cnt);
     io_interact_flag = 0;
+    pthread_cleanup_pop(0);
+
+    usleep(1);
     pthread_exit((void *)(unsigned long)err_code);
 }
 
@@ -81,34 +104,38 @@ int __thread_file_enqueue(FILE *fp){
         unlock_queue_spinlock();
         return -EQUEUE;
     }
-    file_io_cnt++;
     unlock_queue_spinlock();
 
     if((err_code = __file_io_read(fp, &tmp_node))){
-        raise_except(ERR_CALL_INTERNAL(__file_io_read), err_code);
+        if(err_code != -__EEOF)
+            raise_except(ERR_CALL_INTERNAL(__file_io_read), err_code);
         return err_code;
     }
 
-    __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
-
-    err_code = __proto_parse_seq(&tmp_node);
-
-    if(err_code){
+    if((err_code = __proto_parse_seq(&tmp_node))){
         if(err_code == __EDROP){
-            err_code = SUCCESS;
-            goto drop;
+            file_io_dropped++;
+            free_ptr(tmp_node.pcaprec_buf);
+            return SUCCESS;
         }
         raise_except(ERR_CALL_INTERNAL(__proto_parse_seq), err_code);
         return err_code;
     }
 
+    __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
+
     lock_queue_spinlock();
     memcpy(&queue_elem_rear(), &tmp_node, sizeof(struct queue_node_s));
     queue_list.rear = queue_round_tail(queue_list.rear + 1);
+    file_io_cnt++;
     unlock_queue_spinlock();
 
-    drop:
-    return err_code;
+    return SUCCESS;
+}
+
+void __thread_file_destructor(){
+    __debug__prtn_io_cnt(file_io_cnt);
+    io_interact_flag = 0;
 }
 
 int __file_io_init(FILE *fp){
@@ -166,7 +193,6 @@ int __file_io_init(FILE *fp){
 
     if((err_code = ether_chain.proto_set_ulayer(&ether_chain, &ipv4_chain))){
         raise_except(ERR_CALL_PROTO(ether, proto_set_ulayer), err_code);
-        goto err;
     }
 
     err:
@@ -180,7 +206,8 @@ int __file_io_read(FILE *fp, struct queue_node_s* tmp_node){
     if((err_code = load_pcap_record(fp,
             &(tmp_node->pcaprec_info),
             &(tmp_node->pcaprec_buf), queue_list.max_len))){
-        raise_except(ERR_CALL(load_pcap_record), err_code);
+        if(err_code != -__EEOF)
+            raise_except(ERR_CALL(load_pcap_record), err_code);
         return err_code;
     }
 

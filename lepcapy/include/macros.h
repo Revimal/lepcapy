@@ -10,9 +10,8 @@
 /*
  * Compile Option
  */
-#define MAX_QUEUE_SIZE 4096
-#define NETIO_QUEUING_SIZE 1024
-#define NETIO_QUEING_WARN 64
+#define MAX_QUEUE_SIZE 8192
+#define NETIO_QUEUING_SIZE 4096
 
 /*
  * General Macros
@@ -51,25 +50,24 @@
  * Error Control Macros
  */
 #define SUCCESS         0
-#define EPERM           1   /* Operation not permitted */
-#define EFIO            2   /* File I/O error */
-#define ETRANS          3   /* Network transportation error */
-#define ENULL           4   /* Null pointer access fault */
-#define EADDR           5   /* Misc address access fault */
-#define EACCES          6   /* Permission denied */
-#define EINVAL          7   /* Invalid arguments */
-#define E2BIG           8   /* Argument too long */
-#define EMAGIC          9   /* Magic check fault */
-#define EQUEUE          10  /* Record queue fault */
-#define ETHREAD         10  /* Threading fault */
-#define EOVRFLW         11  /* Overflow fault */
-#define EIOCTL          12  /* Ioctl Error */
-#define ESOCK           13  /* Socket Error */
-#define EINVPF          14  /* Invalid | Non-support protocol features */
-#define EPMINIT         15  /* Initialize error on pktm */
-#define __EDROP         16  /* Dropped packet */
-#define EINTRACT        17  /* Thread interaction error */
-#define EJFRAME         18  /* Not support Jumbo-frame */
+#define EFIO            1   /* File I/O error */
+#define ETRANS          2   /* Network transportation error */
+#define ENULL           3   /* Null pointer access fault */
+#define EMEM            4   /* Memory fault */
+#define EINVAL          5   /* Invalid arguments */
+#define EF2BIG          6   /* File is too big */
+#define EMAGIC          7   /* Magic check fault */
+#define EQUEUE          8   /* Record queue fault */
+#define ETHREAD         9   /* Threading fault */
+#define EOVRFLW         10  /* Overflow fault */
+#define EIOCTL          11  /* Ioctl Error */
+#define ESOCK           12  /* Socket Error */
+#define EINVPF          13  /* Invalid | Non-support protocol features */
+#define EPMINIT         14  /* Initialize error on pktm */
+#define __EDROP         15  /* Dropped packet */
+#define EINTRACT        16  /* Thread interaction error */
+#define EJFRAME         17  /* Not support Jumbo-frame */
+#define __EEOF          18  /* End of file */
 
 /*
  * General Macro Functions
