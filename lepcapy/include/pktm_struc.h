@@ -19,7 +19,7 @@
 
 #define alloc_pktm(pktm)                                                            \
     do{                                                                             \
-        pktm = (struct pktm_object_s *)malloc(sizeof(struct pktm_object_s));     \
+        pktm = (struct pktm_object_s *)calloc(1, sizeof(struct pktm_object_s));     \
         pktm->__init = 0;                                                             \
     }while(0)
 

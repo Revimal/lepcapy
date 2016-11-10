@@ -65,6 +65,7 @@ int pktm_ether_init(struct pktm_object_s * const pktm, char * const if_ifn){
     for(i = 0; i < ETH_ALEN; ++i)
         eth_pktm->tx_addr.sll_addr[i] = ifobj.ifr_ifru.ifru_addr.sa_data[i];
     eth_pktm->tx_addr.sll_halen = ETH_ALEN;
+    eth_pktm->tx_addr.sll_family = AF_PACKET;
 
     pktm->__init = 1;
 
