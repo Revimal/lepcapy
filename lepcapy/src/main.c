@@ -27,7 +27,8 @@ int main(int argc, char *argv[])
         return err_code;
     }
 
-    mlockall(MCL_FUTURE);
+    if(mlockall(MCL_FUTURE))
+        raise_except(ERR_CALL_LIBC(mlockall), -EMEM);
 
     strncpy(env_pktm.if_name, argv[2], IFNAMSIZ - 1);
     if((err_code = ipv4_parse_str(argv[3], &(env_pktm.ipv4_addr.daddr)))){
@@ -50,9 +51,6 @@ int main(int argc, char *argv[])
     printf("PCAP Version : %d.%d\n", p_pcap_hdr.version_major, p_pcap_hdr.version_minor);
     printf("Packet Type : %d\n", p_pcap_hdr.network);
 
-    /*
-     * Start of Routine
-     */
     __debug__chkpoint(routine_start);
 
     queue_init();

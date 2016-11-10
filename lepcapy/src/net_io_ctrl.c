@@ -31,31 +31,31 @@ int thread_net_io(pthread_t *th_file){
     if(pthread_attr_setinheritsched(&t_attr, PTHREAD_EXPLICIT_SCHED)){
         raise_except(ERR_CALL_LIBC(pthread_attr_setinheritsched), -ETHREAD);
         err_code = -ETHREAD;
-        goto attr_err;
+        goto thread_err;
     }
     if(pthread_attr_getschedparam(&t_attr, &t_param)){
         raise_except(ERR_CALL_LIBC(pthread_attr_getschedparam), -ETHREAD);
         err_code = -ETHREAD;
-        goto attr_err;
+        goto thread_err;
     }
     t_param.__sched_priority = sched_get_priority_max(SCHED_FIFO);
     if(pthread_attr_setschedpolicy(&t_attr, SCHED_FIFO)){
         raise_except(ERR_CALL_LIBC(pthread_attr_setschedpolicy), -ETHREAD);
         err_code = -ETHREAD;
-        goto attr_err;
+        goto thread_err;
     }
     if(pthread_attr_setschedparam(&t_attr, &t_param)){
         raise_except(ERR_CALL_LIBC(pthread_attr_setschedparam), -ETHREAD);
         err_code = -ETHREAD;
-        goto attr_err;
-    }
-    //
-    if(pthread_create(&t_thread, &t_attr, __thread_net_io, (void *)th_file)){
-        raise_except(ERR_CALL_LIBC(pthread_create), -ETHREAD);
-        return -ETHREAD;
+        goto thread_err;
     }
 
-    attr_err:
+    if(pthread_create(&t_thread, &t_attr, __thread_net_io, (void *)th_file)){
+        raise_except(ERR_CALL_LIBC(pthread_create), -ETHREAD);
+        err_code = -ETHREAD;
+    }
+
+    thread_err:
     pthread_attr_destroy(&t_attr);
 
     return err_code;
@@ -108,8 +108,6 @@ int __thread_net_dequeue(){
     }
 
     tmp_node = queue_elem_front();
-
-//    printf("#%lu\t%u.%06d\n", net_io_cnt, tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
 
     __nwait_release_lock(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
 
