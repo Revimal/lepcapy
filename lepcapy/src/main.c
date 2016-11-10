@@ -8,6 +8,14 @@
 
 #include <sys/mman.h>
 
+static inline void print_result(){
+    printf("\n[*] Replay Result\n");
+    printf("Total    : %10lupkts\n", thread_file_get_cnt() + thread_file_get_dropped());
+    printf("Parsed   : %10lupkts\n", thread_file_get_cnt());
+    printf("Filtered : %10lupkts\n", thread_file_get_dropped());
+    printf("Replayed : %10lupkts\n\n", thread_net_get_cnt());
+}
+
 int main(int argc, char *argv[])
 {
     int err_code = SUCCESS;
@@ -38,7 +46,6 @@ int main(int argc, char *argv[])
         raise_except(ERR_CALL(load_pcap_format), err_code);
         goto out;
     }
-    //  TODO : Need Refactoring (FILE I/O --> Source Control)
 
     printf("PCAP Version : %d.%d\n", p_pcap_hdr.version_major, p_pcap_hdr.version_minor);
     printf("Packet Type : %d\n", p_pcap_hdr.network);
@@ -50,6 +57,9 @@ int main(int argc, char *argv[])
 
     queue_init();
     alloc_pktm(p_pktm);
+
+    printf("[*] Start Replay...\n\n");
+
     if((err_code = thread_file_io(fp))){
         raise_except(ERR_CALL(thread_file_io), err_code);
         goto out;
@@ -70,6 +80,8 @@ int main(int argc, char *argv[])
         __debug__chkpoint(err_thread_net);
         raise_except(ERR_CALL(thread_net_join), err_code);
     }
+
+    print_result();
 
     out:
     __debug__chkpoint(clean);

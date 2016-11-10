@@ -3,6 +3,8 @@
 
 #include "trans_ctrl.h"
 
+
+unsigned long thread_net_get_cnt();
 /*
  *  Thread Functions
  */

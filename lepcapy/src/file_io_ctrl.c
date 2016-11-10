@@ -3,6 +3,15 @@
 
 static pthread_t t_thread;
 static unsigned long file_io_cnt = 0;
+static unsigned long file_io_dropped = 0;
+
+unsigned long thread_file_get_cnt(){
+    return file_io_cnt;
+}
+
+unsigned long thread_file_get_dropped(){
+    return file_io_dropped;
+}
 
 int thread_file_io(FILE *fp){
     int err_code = SUCCESS;
@@ -17,14 +26,13 @@ int thread_file_io(FILE *fp){
         return err_code;
     }
 
-    //TODO : Add Err Ctrl
     if(pthread_create(&t_thread, NULL, __thread_file_io, (void *)fp)){
         raise_except(ERR_CALL_LIBC(pthread_create), -ETHREAD);
         return -ETHREAD;
     }
 
     while(queue_current_size() < NETIO_QUEUING_SIZE){
-        sched_yield();
+        usleep(1);
     }
 
     io_interact_flag = 1;
@@ -56,7 +64,7 @@ void *__thread_file_io(void *file_ptr){
         if(err_code){
             if(err_code == -EQUEUE){
                 err_code = SUCCESS;
-                sched_yield();
+                usleep(1);
                 continue;
             }
             else if(err_code == -__EEOF){
@@ -104,16 +112,17 @@ int __thread_file_enqueue(FILE *fp){
         return err_code;
     }
 
-    __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
-
     if((err_code = __proto_parse_seq(&tmp_node))){
         if(err_code == __EDROP){
+            file_io_dropped++;
             free_ptr(tmp_node.pcaprec_buf);
             return SUCCESS;
         }
         raise_except(ERR_CALL_INTERNAL(__proto_parse_seq), err_code);
         return err_code;
     }
+
+    __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
 
     lock_queue_spinlock();
     memcpy(&queue_elem_rear(), &tmp_node, sizeof(struct queue_node_s));

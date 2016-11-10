@@ -15,6 +15,9 @@
  *  #Function Pointer Structure
  */
 
+
+unsigned long thread_file_get_cnt();
+unsigned long thread_file_get_dropped();
 /*
  *  Thread Functions
  */
