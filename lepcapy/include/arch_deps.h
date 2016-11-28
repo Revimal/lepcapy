@@ -15,7 +15,7 @@ typedef struct {
     uint64_t cnt;
 }atomic64_t;
 
-__attribute__((always_inline))  inline void atomic64_mov(atomic64_t *atomic_val, uint64_t mov_val){
+__attribute__((always_inline)) static inline void atomic64_mov(atomic64_t *atomic_val, uint64_t mov_val){
 #if defined(__amd64__) || defined(__x86_64__)
     __asm__ __volatile__ ("movq %1, %0"
                           : "+m" (atomic_val->cnt)
@@ -25,7 +25,7 @@ __attribute__((always_inline))  inline void atomic64_mov(atomic64_t *atomic_val,
 #endif
 }
 
-__attribute__((always_inline))  inline void atomic64_add(atomic64_t *atomic_val, uint64_t add_val){
+__attribute__((always_inline)) static inline void atomic64_add(atomic64_t *atomic_val, uint64_t add_val){
     #if defined(__amd64__) || defined(__x86_64__)
         __asm__ __volatile__ (LOCK_PREFIX "addq %1, %0"
                          : "+m" (atomic_val->cnt)
@@ -35,7 +35,7 @@ __attribute__((always_inline))  inline void atomic64_add(atomic64_t *atomic_val,
     #endif
 }
 
-__attribute__((always_inline))  inline void atomic64_sub(atomic64_t *atomic_val, uint64_t sub_val){
+__attribute__((always_inline)) static inline void atomic64_sub(atomic64_t *atomic_val, uint64_t sub_val){
 #if defined(__amd64__) || defined(__x86_64__)
     __asm__ __volatile__ (LOCK_PREFIX "subq %1, %0"
                           : "+m" (atomic_val->cnt)
@@ -45,7 +45,7 @@ __attribute__((always_inline))  inline void atomic64_sub(atomic64_t *atomic_val,
 #endif
 }
 
-__attribute__((always_inline))  inline void atomic64_inc(atomic64_t *atomic_val){
+__attribute__((always_inline)) static inline void atomic64_inc(atomic64_t *atomic_val){
 #if defined(__amd64__) || defined(__x86_64__)
     __asm__ __volatile__ (LOCK_PREFIX "incq %0"
                           : "+m" (atomic_val->cnt));
@@ -54,7 +54,7 @@ __attribute__((always_inline))  inline void atomic64_inc(atomic64_t *atomic_val)
 #endif
 }
 
-__attribute__((always_inline)) inline void atomic64_dec(atomic64_t *atomic_val){
+__attribute__((always_inline)) static inline void atomic64_dec(atomic64_t *atomic_val){
 #if defined(__amd64__) || defined(__x86_64__)
     __asm__ __volatile__ (LOCK_PREFIX "decq %0"
                           : "+m" (atomic_val->cnt));
