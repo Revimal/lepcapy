@@ -22,6 +22,8 @@ int main(int argc, char *argv[])
     FILE *fp = NULL;
     struct pcap_hdr_s p_pcap_hdr;
 
+    printf("%lu\n", sizeof(struct queue_node_s));
+
     if(argc < 4){
         printf("Usage : lepcapy [Dump file] [Interface Name] [IP Address]\n");
         return err_code;
@@ -62,6 +64,7 @@ int main(int argc, char *argv[])
         raise_except(ERR_CALL(thread_file_io), err_code);
         goto out;
     }
+
     if((err_code = thread_net_io(thread_file_getthp()))){
         raise_except(ERR_CALL(thread_net_io), err_code);
         pthread_cancel(*thread_file_getthp());

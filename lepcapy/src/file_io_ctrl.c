@@ -26,16 +26,16 @@ int thread_file_io(FILE *fp){
         return err_code;
     }
 
+    io_interact_flag = 1;
     if(pthread_create(&t_thread, NULL, __thread_file_io, (void *)fp)){
         raise_except(ERR_CALL_LIBC(pthread_create), -ETHREAD);
+        io_interact_flag = 0;
         return -ETHREAD;
     }
 
-    while(queue_current_size() < NETIO_QUEUING_SIZE){
-        usleep(0);
+    while(queue_current_size() < NETIO_QUEUING_SIZE && io_interact_flag){
+        usleep(1);
     }
-
-    io_interact_flag = 1;
 
     return err_code;
 }
@@ -123,8 +123,10 @@ int __thread_file_enqueue(FILE *fp){
 
     __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
 
+    //Move to here
+
     lock_queue_spinlock();
-    memcpy(&queue_elem_rear(), &tmp_node, sizeof(struct queue_node_s));
+    __fastcpy_aligned32(&queue_elem_rear(), &tmp_node);
     queue_list.rear = queue_round_tail(queue_list.rear + 1);
     unlock_queue_spinlock();
     file_io_cnt++;
@@ -200,7 +202,6 @@ int __file_io_init(FILE *fp){
 
 int __file_io_read(FILE *fp, struct queue_node_s* tmp_node){
     int err_code = SUCCESS;
-    unsigned char *temp_ptr = NULL;
 
     if((err_code = load_pcap_record(fp,
             &(tmp_node->pcaprec_info),
@@ -209,11 +210,6 @@ int __file_io_read(FILE *fp, struct queue_node_s* tmp_node){
             raise_except(ERR_CALL(load_pcap_record), err_code);
         return err_code;
     }
-
-    temp_ptr = tmp_node->pcaprec_buf;
-    tmp_node->head = temp_ptr;
-    temp_ptr += tmp_node->pcaprec_info.inc_len;
-    tmp_node->tail = temp_ptr;
 
     return err_code;
 }

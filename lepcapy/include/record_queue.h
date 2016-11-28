@@ -3,24 +3,11 @@
 
 #include "macros.h"
 #include "pcap_struc.h"
+#include "arch_deps.h"
 
 #include <pthread.h>
 #include <stdint.h>
 #include <unistd.h>
-
-/*
- * Support OSX
- */
-#if (defined(__APPLE__) && defined(__MACH__))
-    #include <libkern/OSAtomic.h>
-    #define pthread_spinlock_t OSSpinLock
-    #define pthread_spin_lock(spinlock)         \
-        OSSpinLockLock(get_queue_spinlock())
-    #define pthread_spin_unlock(spinlock)       \
-        OSSpinLockUnlock(get_queue_spinlock())
-    #define pthread_spin_init(spinlock, mode)   0
-#endif
-
 
 /*
  * Queue Control Macro Functions
@@ -60,9 +47,12 @@ struct queue_node_s{
     struct pcaprec_hdr_s pcaprec_info;
     pcaprec_data* pcaprec_buf;
 
-    unsigned char* head;    //Pcap record head
-    unsigned char* tail;    //Pcap record tail
-};
+#ifdef __LEPCAPY_ARCH_OPTS__
+    atomic64_t netbuf_idx;
+#else
+    uint64_t dummy;
+#endif
+} __attribute__((aligned(32)));
 
 struct queue_list_s{
     struct queue_node_s queue_buf[MAX_QUEUE_SIZE];

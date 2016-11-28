@@ -20,6 +20,10 @@ struct proto_env{
 extern struct proto_env env_pktm;
 extern struct pktm_object_s *p_pktm;
 
+#ifdef __LEPCAPY_ARCH_OPTS__
+extern struct queue_node_s netio_buf[NETIO_BUFFER_SIZE];
+#endif
+
 static inline void __nwait_release_lock(uint32_t tv_sec, int32_t tv_usec){
     struct timespec timeout = {0, 0};
 

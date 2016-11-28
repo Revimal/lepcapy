@@ -18,10 +18,10 @@ int thread_net_io(pthread_t *th_file){
         return -ENULL;
     }
 
-    if(!io_interact_flag){
-        raise_except(ERR_INTERACT(io_interact_flag), -EINTRACT);
-        return -EINTRACT;
-    }
+//    if(!io_interact_flag){
+//        raise_except(ERR_INTERACT(io_interact_flag), -EINTRACT);
+//        return -EINTRACT;
+//    }
 
     if(pthread_attr_init(&t_attr)){
         raise_except(ERR_CALL_LIBC(pthread_attr_init), -ETHREAD);
@@ -106,7 +106,6 @@ int __thread_net_dequeue(){
         unlock_queue_spinlock();
         return -EQUEUE;
     }
-
     tmp_node = queue_elem_front();
 
     __nwait_release_lock(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
