@@ -96,8 +96,10 @@ __attribute__((always_inline)) static inline void __fastcpy_aligned32(void *dest
 
 
 __attribute__((always_inline)) static inline void __fastcpy_aligned32_wcmem(void *dest, void *src){
-    #if defined(__AVX__)
+    #if defined(__AVX2__)
         *(__m256i *)dest = _mm256_stream_load_si256((__m256i *)src);
+    #elif defined(__AVX__)
+        *(__m256i *)dest = _mm256_loadu_si256((__m256i *)src);
     #elif defined(__SSE3__)
     #elif defined(__ARM_NEON__)
     #else
