@@ -62,11 +62,7 @@ void *__thread_file_io(void *file_ptr){
     while(1){
         err_code = __thread_file_enqueue((FILE*)file_ptr);
         if(err_code){
-            if(err_code == -EQUEUE){
-                err_code = SUCCESS;
-                continue;
-            }
-            else if(err_code == -__EEOF){
+            if(err_code == -__EEOF){
                 err_code = SUCCESS;
                 break;
             }
@@ -98,13 +94,6 @@ int __thread_file_enqueue(FILE *fp){
         return -EINVAL;
     }
 
-    lock_queue_spinlock();
-    if(queue_round_tail((queue_list.rear + 1)) == queue_list.front){
-        unlock_queue_spinlock();
-        return -EQUEUE;
-    }
-    unlock_queue_spinlock();
-
     if((err_code = __file_io_read(fp, &tmp_node))){
         if(err_code != -__EEOF)
             raise_except(ERR_CALL_INTERNAL(__file_io_read), err_code);
@@ -123,10 +112,9 @@ int __thread_file_enqueue(FILE *fp){
 
     __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
 
-    //Move to here
-
+    while(queue_round_tail((queue_list.rear + 1)) == queue_list.front);
     lock_queue_spinlock();
-    __fastcpy_aligned32(&queue_elem_rear(), &tmp_node);
+    __fastcpy_aligned32_wcmem(&queue_elem_rear(), &tmp_node);
     queue_list.rear = queue_round_tail(queue_list.rear + 1);
     unlock_queue_spinlock();
     file_io_cnt++;

@@ -47,11 +47,7 @@ struct queue_node_s{
     struct pcaprec_hdr_s pcaprec_info;
     pcaprec_data* pcaprec_buf;
 
-#ifdef __LEPCAPY_ARCH_OPTS__
-    atomic64_t netbuf_idx;
-#else
     uint64_t dummy;
-#endif
 } __attribute__((aligned(32)));
 
 struct queue_list_s{
@@ -65,7 +61,7 @@ struct queue_list_s{
     int32_t rel_usec;
 
     pthread_spinlock_t queue_spinlock;
-};
+} __attribute__((aligned(128)));
 
 extern struct queue_list_s queue_list;
 extern int io_interact_flag;

@@ -12,7 +12,7 @@
  */
 #define MAX_QUEUE_SIZE 8192
 #define NETIO_QUEUING_SIZE 4096
-#define NETIO_BUFFER_SIZE 4
+#define FAST_BUFFER_SIZE 16
 
 /*
  * General Macros
@@ -69,6 +69,7 @@
 #define EINTRACT        16  /* Thread interaction error */
 #define EJFRAME         17  /* Not support Jumbo-frame */
 #define __EEOF          18  /* End of file */
+#define ESYSDEPS        19  /* System dependency */
 
 /*
  * General Macro Functions

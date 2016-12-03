@@ -8,6 +8,12 @@
 
 #include <sys/mman.h>
 
+static struct{
+    unsigned long phys_core;
+    unsigned long virt_core;
+    unsigned long *virt_phys;
+}core_info;
+
 static inline void print_result(){
     printf("\n[*] Replay Result\n");
     printf("Total    : %10lupkts\n", thread_file_get_cnt() + thread_file_get_dropped());
@@ -21,8 +27,6 @@ int main(int argc, char *argv[])
     int err_code = SUCCESS;
     FILE *fp = NULL;
     struct pcap_hdr_s p_pcap_hdr;
-
-    printf("%lu\n", sizeof(struct queue_node_s));
 
     if(argc < 4){
         printf("Usage : lepcapy [Dump file] [Interface Name] [IP Address]\n");

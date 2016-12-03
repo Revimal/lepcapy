@@ -23,6 +23,7 @@
 
 #define ERR_IOCTL(_at) "ioctl_<"#_at">"
 #define ERR_PROTO(_cause, _at) "protocol_err_["#_cause"]_<"#_at">"
+#define ERR_SYSDEPS(_at) "sysdeps_<"#_at">"
 
 #define ERR_UNK() "unkwown_err"
 

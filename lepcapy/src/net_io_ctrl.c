@@ -106,9 +106,12 @@ int __thread_net_dequeue(){
         unlock_queue_spinlock();
         return -EQUEUE;
     }
-    tmp_node = queue_elem_front();
+    __fastcpy_aligned32_wcmem(&tmp_node, &queue_elem_front());
+//    printf("Current[%lu] : %u\n", net_io_cnt, queue_current_size());
+    unlock_queue_spinlock();
+//    tmp_node = queue_elem_front();
 
-    __nwait_release_lock(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
+    __nwait(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
 
     if((err_code = ether_operations.pkt_send(p_pktm, tmp_node.pcaprec_buf,
              tmp_node.pcaprec_info.inc_len, NULL))){
@@ -117,7 +120,8 @@ int __thread_net_dequeue(){
         return err_code;
     }
 
-    free_ptr(queue_elem_front().pcaprec_buf);
+    lock_queue_spinlock();
+    free_ptr(tmp_node.pcaprec_buf);
     queue_list.front = queue_round_tail(queue_list.front + 1);
     unlock_queue_spinlock();
     net_io_cnt++;

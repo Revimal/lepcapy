@@ -63,22 +63,36 @@ __attribute__((always_inline)) static inline void atomic64_dec(atomic64_t *atomi
 #endif
 }
 
+__attribute__((always_inline)) static inline int atomic64_cmpxchg(atomic64_t *atomic_val, uint64_t old_val, uint64_t new_val){
+#if defined(__amd64__) || defined(__x86_64__)
+
+    __volatile__ unsigned char __ret = 0;
+    __volatile__ uint64_t *__ptr = (__volatile__ uint64_t *)&atomic_val->cnt;
+
+    __asm__ __volatile__ (LOCK_PREFIX "cmpxchgq %2, %1"
+                          "\t\nsete %0"
+                          : "=q" (__ret), "=m" (*__ptr)
+                          : "r" (new_val), "m" (*__ptr), "a" (old_val)
+                          : "memory");
+
+    return __ret;
+#elif defined(__arm__)
+#else
+#endif
+}
+
 /*
  * Arch-deps optimized features
  */
-#if defined(__AVX__)
+#if defined(__AVX2__)
     #include "immintrin.h"
-#elif defined(__SSE3__)
-#elif defined(__ARM_NEON__)
 #else
     #include <string.h>
 #endif
 
 __attribute__((always_inline)) static inline void __fastcpy_aligned32(void *dest, void *src){
-    #if defined(__AVX__)
+    #if defined(__AVX2__)
         *(__m256i *)dest = _mm256_loadu_si256((__m256i *)src);
-    #elif defined(__SSE3__)
-    #elif defined(__ARM_NEON__)
     #else
         memcpy(dest, src, 32);
     #endif
@@ -88,10 +102,6 @@ __attribute__((always_inline)) static inline void __fastcpy_aligned32(void *dest
 __attribute__((always_inline)) static inline void __fastcpy_aligned32_wcmem(void *dest, void *src){
     #if defined(__AVX2__)
         *(__m256i *)dest = _mm256_stream_load_si256((__m256i *)src);
-    #elif defined(__AVX__)
-        *(__m256i *)dest = _mm256_loadu_si256((__m256i *)src);
-    #elif defined(__SSE3__)
-    #elif defined(__ARM_NEON__)
     #else
         memcpy(dest, src, 32);
     #endif
