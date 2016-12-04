@@ -1,7 +1,7 @@
 #ifndef LEPCAPY_ARCH_DEPS_H
 #define LEPCAPY_ARCH_DEPS_H
 
-#if defined(__amd64__) || defined(__x86_64__) || defined(__arm__)
+#if defined(__amd64__) || defined(__x86_64__) || defined(__i386__) || defined(_X86_)
 
 #include <stdint.h>
 #define __LEPCAPY_ARCH_X86__
@@ -15,6 +15,7 @@
 /*
  * x86 Atomic_64bit
  */
+#if defined(__amd64__) || defined(__x86_64__)
 typedef struct {
     uint64_t cnt;
 }atomic64_t;
@@ -59,6 +60,7 @@ __attribute__((always_inline)) static inline int atomic64_cmpxchg(atomic64_t *at
 
     return __ret;
 }
+#endif
 
 /*
  * x86 Atomic_32bit
