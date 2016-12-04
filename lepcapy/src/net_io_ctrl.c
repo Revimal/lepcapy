@@ -97,34 +97,46 @@ void *__thread_net_io(void *th_file){
     pthread_exit((void *)(unsigned long)err_code);
 }
 
-int __thread_net_dequeue(){
+inline int __thread_net_dequeue(){
     int err_code = SUCCESS;
     struct queue_node_s tmp_node;
+#if defined(__LEPCAPY_ARCH_X86__)
+    uint32_t tmp_front;
 
+    if(!queue_current_size())
+        return -EQUEUE;
+
+    tmp_front = queue_idx_front();
+    __fastcpy_aligned32_wcmem(tmp_node, queue_elem(tmp_front));
+#else
     lock_queue_spinlock();
     if(queue_list.front == queue_list.rear){
         unlock_queue_spinlock();
         return -EQUEUE;
     }
-    __fastcpy_aligned32_wcmem(&tmp_node, &queue_elem_front());
-//    printf("Current[%lu] : %u\n", net_io_cnt, queue_current_size());
     unlock_queue_spinlock();
-//    tmp_node = queue_elem_front();
 
+    __fastcpy_aligned32_wcmem(tmp_node, queue_elem_front());
+#endif
     __nwait(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
 
     if((err_code = ether_operations.pkt_send(p_pktm, tmp_node.pcaprec_buf,
              tmp_node.pcaprec_info.inc_len, NULL))){
-        unlock_queue_spinlock();
         raise_except(ERR_CALL_PKTM(ether, pkt_send), err_code);
         return err_code;
     }
 
+#if defined(__LEPCAPY_ARCH_X86__)
+    free_ptr(tmp_node.pcaprec_buf);
+    atomic32_dec(&queue_elem_cnt());
+    if(LEPCAPY_EXPECT_F(!atomic32_cmpxchg(&queue_list.front, tmp_front, queue_round_tail(tmp_front + 1))))
+        return -ENQUEUE;
+#else
     lock_queue_spinlock();
     free_ptr(tmp_node.pcaprec_buf);
     queue_list.front = queue_round_tail(queue_list.front + 1);
     unlock_queue_spinlock();
+#endif
     net_io_cnt++;
-
     return SUCCESS;
 }
