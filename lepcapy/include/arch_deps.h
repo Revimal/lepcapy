@@ -118,13 +118,15 @@ __attribute__((always_inline)) static inline int atomic32_cmpxchg(atomic32_t *at
         __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
                              "vmovdq %%ymm0, %0"\
                              :"+m"(dest)\
-                             :"m"(src));
+                             :"m"(src)\
+                             :"ymm0");
 
     #define __fastcpy_aligned32_wcmem(dest, src)\
         __asm__ __volatile__("vmovntdqa %1, %%ymm0;"\
                              "vmovntdq %%ymm0, %0"\
                              :"+m"(dest)\
-                             :"m"(src));
+                             :"m"(src)\
+                             :"ymm0");
 #else
     #include <string.h>
 
