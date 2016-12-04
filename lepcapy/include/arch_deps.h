@@ -125,7 +125,6 @@ __attribute__((always_inline)) static inline int atomic32_cmpxchg(atomic32_t *at
                              :"+m"(dest)\
                              :"m"(src)\
                              :"%ymm0");
-
 #else
     #include <string.h>
 

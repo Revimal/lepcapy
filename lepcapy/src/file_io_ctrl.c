@@ -116,6 +116,7 @@ inline int __thread_file_enqueue(FILE *fp){
     __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
 
 #if defined(__LEPCAPY_ARCH_X86__)
+    printf("[%lu]%u\n", file_io_cnt, queue_current_size());
     while(1){
         if(queue_current_size() < MAX_QUEUE_SIZE){
             tmp_rear = queue_idx_rear();
