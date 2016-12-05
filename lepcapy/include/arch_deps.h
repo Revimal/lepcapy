@@ -113,7 +113,6 @@ __attribute__((always_inline)) static inline int atomic32_cmpxchg(atomic32_t *at
 /*
  * Arch-deps optimized features
  */
-#define __AVX2__
 #if defined(__AVX2__)
     #define __fastcpy_aligned32(dest, src)\
         __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
