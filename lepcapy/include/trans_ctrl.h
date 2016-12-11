@@ -69,6 +69,7 @@ static inline void __nwait(uint32_t tv_sec, int32_t tv_usec){
     pselect(0, NULL, NULL, NULL, &timeout, NULL);
 }
 
+#if !defined(__LEPCAPY_ARCH_X86__)
 static inline void __nwait_release_lock(uint32_t tv_sec, int32_t tv_usec){
     struct timespec timeout = {0, 0};
 
@@ -79,5 +80,6 @@ static inline void __nwait_release_lock(uint32_t tv_sec, int32_t tv_usec){
     pselect(0, NULL, NULL, NULL, &timeout, NULL);
     lock_queue_spinlock();
 }
+#endif
 
 #endif //LEPCAPY_PROTO_CTRL_H

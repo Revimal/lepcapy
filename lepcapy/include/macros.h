@@ -70,6 +70,7 @@
 #define EJFRAME         17  /* Not support Jumbo-frame */
 #define __EEOF          18  /* End of file */
 #define ESYSDEPS        19  /* System dependency */
+#define ENQUEUE         20  /* Net I/O queue fault (FATAL) */
 
 /*
  * General Macro Functions

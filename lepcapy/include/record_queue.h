@@ -12,30 +12,49 @@
 /*
  * Queue Control Macro Functions
  */
-#define queue_current_size()                \
-    (queue_list.rear > queue_list.front  ?   \
-    queue_list.rear - queue_list.front   :   \
-    queue_list.front - queue_list.rear)
+#if defined(__LEPCAPY_ARCH_X86__)
+    #define queue_elem_cnt() queue_list.elem_cnt
+    #define queue_current_size() queue_elem_cnt().cnt
 
-#define queue_round_tail(queue_cnt)         \
-    ((queue_cnt) % MAX_QUEUE_SIZE)
+    #define queue_round_tail(queue_cnt)         \
+        ((queue_cnt) % MAX_QUEUE_SIZE)
 
-#define queue_elem(queue_cnt)               \
-    (queue_list.queue_buf[queue_cnt])
+    #define queue_elem(queue_cnt)               \
+        (queue_list.queue_buf[queue_cnt])
 
-/*
- * Deprecated!!!
- */
-#define queue_elem_front()                   \
-    (queue_elem(queue_list.front))
+    #define queue_idx_front()                   \
+        (queue_list.front.cnt)
 
-#define queue_elem_rear()                   \
-    (queue_elem(queue_list.rear))
-//
+    #define queue_idx_rear()                    \
+        (queue_list.rear.cnt)
 
-#define get_queue_spinlock() (&(queue_list.queue_spinlock))
-#define lock_queue_spinlock() pthread_spin_lock(get_queue_spinlock())
-#define unlock_queue_spinlock() pthread_spin_unlock(get_queue_spinlock())
+    #define queue_elem_front()                   \
+        (queue_elem(queue_idx_front())
+
+    #define queue_elem_rear()                   \
+        (queue_elem(queue_idx_rear())
+#else
+    #define queue_current_size()                \
+        (queue_list.rear > queue_list.front  ?   \
+        queue_list.rear - queue_list.front   :   \
+        queue_list.front - queue_list.rear)
+
+    #define queue_round_tail(queue_cnt)         \
+        ((queue_cnt) % MAX_QUEUE_SIZE)
+
+    #define queue_elem(queue_cnt)               \
+        (queue_list.queue_buf[queue_cnt])
+
+    #define queue_elem_front()                   \
+        (queue_elem(queue_list.front))
+
+    #define queue_elem_rear()                   \
+        (queue_elem(queue_list.rear))
+
+    #define get_queue_spinlock() (&(queue_list.queue_spinlock))
+    #define lock_queue_spinlock() pthread_spin_lock(get_queue_spinlock())
+    #define unlock_queue_spinlock() pthread_spin_unlock(get_queue_spinlock())
+#endif
 
 #define __set_relative_tv(cur_sec, cur_usec)  \
     do{                                     \
@@ -46,21 +65,26 @@
 struct queue_node_s{
     struct pcaprec_hdr_s pcaprec_info;
     pcaprec_data* pcaprec_buf;
-
-    uint64_t dummy;
 } __attribute__((aligned(32)));
 
 struct queue_list_s{
     struct queue_node_s queue_buf[MAX_QUEUE_SIZE];
     uint32_t max_len;
 
+#if defined(__LEPCAPY_ARCH_X86__)
+    atomic32_t elem_cnt;
+
+    atomic32_t front;
+    atomic32_t rear;
+#else
+    pthread_spinlock_t queue_spinlock;
+
     uint32_t front;
     uint32_t rear;
+#endif
 
     uint32_t rel_sec;
     int32_t rel_usec;
-
-    pthread_spinlock_t queue_spinlock;
 } __attribute__((aligned(128)));
 
 extern struct queue_list_s queue_list;
