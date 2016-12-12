@@ -49,7 +49,11 @@ int main(int argc, char *argv[])
     }
 
     printf("PCAP Version : %d.%d\n", p_pcap_hdr.version_major, p_pcap_hdr.version_minor);
-    printf("Packet Type : %d\n", p_pcap_hdr.network);
+
+    if(p_pcap_hdr.network != 1){
+        raise_except(ERR_PROTO(not_ether, network), -EINVPF);
+        return -EINVPF;
+    }
 
     __debug__chkpoint(routine_start);
 

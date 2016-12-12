@@ -13,8 +13,8 @@
  * Queue Control Macro Functions
  */
 #if defined(__LEPCAPY_ARCH_X86__)
-    #define queue_elem_cnt() queue_list.elem_cnt
-    #define queue_current_size() queue_elem_cnt().cnt
+    #define queue_elem_cnt() (queue_list.elem_cnt)
+    #define queue_current_size() atomic32_get(&queue_elem_cnt())
 
     #define queue_round_tail(queue_cnt)         \
         ((queue_cnt) % MAX_QUEUE_SIZE)
@@ -23,10 +23,10 @@
         (queue_list.queue_buf[queue_cnt])
 
     #define queue_idx_front()                   \
-        (queue_list.front.cnt)
+        atomic32_get(&(queue_list.front))
 
     #define queue_idx_rear()                    \
-        (queue_list.rear.cnt)
+        atomic32_get(&(queue_list.rear))
 
     #define queue_elem_front()                   \
         (queue_elem(queue_idx_front())

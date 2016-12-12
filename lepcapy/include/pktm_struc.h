@@ -46,12 +46,6 @@ struct pktm_object_s{
     int __init;
     char __if_name[IFNAMSIZ];
     int __sd;
-//    int offset;
-
-//    uint8_t* proto_buf;
-
-//    void *proto_hdr;
-//    uint8_t* proto_payload;
 
     struct sockaddr_ll __tx_addr;
 };

@@ -4,18 +4,6 @@
 #include "trans_ctrl.h"
 #include "pcap_io.h"
 
-//  TODO : Split as File I/O & Source Ctrl
-
-/*
- *  Source Ctrl : dump read & pkt capture + protocol parsing
- *      - Multi threading
- *
- *  File I/O : dump parsing
- *
- *  #Function Pointer Structure
- */
-
-
 unsigned long thread_file_get_cnt();
 unsigned long thread_file_get_dropped();
 /*

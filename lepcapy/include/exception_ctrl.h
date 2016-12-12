@@ -28,17 +28,27 @@
 #define ERR_UNK() "unkwown_err"
 
 #ifndef NDEBUG
-    #define __debug__prtn_io_cnt(_io_cnt)   \
-        printf("#Current <"#_io_cnt"> : %lu\n\n", _io_cnt);
-    #define raise_except(_at, _err_no)                                                                  \
-        printf("#Exception raised at %s\n\t*Line : %u\n\t*Function : %s\n\t*Additional : %s - %d\n\n",    \
-               __FILE__, __LINE__, __func__, _at, _err_no);
-    #define __debug__chkpoint(_chkpoint)   \
-        printf("#Debug Checkpoint - "#_chkpoint"\n\n");
+    #ifdef __KERNEL__
+        #define __debug__prtn_io_cnt(_io_cnt)   \
+            printk(KERN_DEBUG "#Current <"#_io_cnt"> : %lu\n\n", _io_cnt);
+        #define __debug__chkpoint(_chkpoint)   \
+            printk(KERN_DEBUG "#Debug Checkpoint - "#_chkpoint"\n\n");
+        #define raise_except(_at, _err_no)                                                                  \
+            printk(KERN_DEBUG "#Exception raised at %s\n\t*Line : %u\n\t*Function : %s\n\t*Additional : %s - %d\n\n",    \
+                   __FILE__, __LINE__, __func__, _at, _err_no);
+    #else
+        #define __debug__prtn_io_cnt(_io_cnt)   \
+            printf("#Current <"#_io_cnt"> : %lu\n\n", _io_cnt);
+        #define __debug__chkpoint(_chkpoint)   \
+            printf("#Debug Checkpoint - "#_chkpoint"\n\n");
+        #define raise_except(_at, _err_no)                                                                  \
+            printf("#Exception raised at %s\n\t*Line : %u\n\t*Function : %s\n\t*Additional : %s - %d\n\n",    \
+                   __FILE__, __LINE__, __func__, _at, _err_no);
+    #endif //__KERNEL__
 #else
     #define __debug__prtn_io_cnt(_io_cnt)
-    #define raise_except(_at, _err_no)
     #define __debug__chkpoint(_chkpoint)
+    #define raise_except(_at, _err_no)
 #endif
 
 #endif //LECAPY_EXCEPTION_CTRL_H
