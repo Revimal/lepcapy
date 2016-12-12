@@ -12,7 +12,7 @@
 /*
  * Queue Control Macro Functions
  */
-#ifdef __LEPCAPY_ARCH_X86__
+#if defined(__LEPCAPY_ARCH_X86__)
     #define queue_elem_cnt() queue_list.elem_cnt
     #define queue_current_size() queue_elem_cnt().cnt
 
@@ -50,11 +50,11 @@
 
     #define queue_elem_rear()                   \
         (queue_elem(queue_list.rear))
-#endif
 
-#define get_queue_spinlock() (&(queue_list.queue_spinlock))
-#define lock_queue_spinlock() pthread_spin_lock(get_queue_spinlock())
-#define unlock_queue_spinlock() pthread_spin_unlock(get_queue_spinlock())
+    #define get_queue_spinlock() (&(queue_list.queue_spinlock))
+    #define lock_queue_spinlock() pthread_spin_lock(get_queue_spinlock())
+    #define unlock_queue_spinlock() pthread_spin_unlock(get_queue_spinlock())
+#endif
 
 #define __set_relative_tv(cur_sec, cur_usec)  \
     do{                                     \
@@ -71,20 +71,20 @@ struct queue_list_s{
     struct queue_node_s queue_buf[MAX_QUEUE_SIZE];
     uint32_t max_len;
 
-#ifdef __LEPCAPY_ARCH_X86__
+#if defined(__LEPCAPY_ARCH_X86__)
     atomic32_t elem_cnt;
 
     atomic32_t front;
     atomic32_t rear;
 #else
+    pthread_spinlock_t queue_spinlock;
+
     uint32_t front;
     uint32_t rear;
 #endif
 
     uint32_t rel_sec;
     int32_t rel_usec;
-
-    pthread_spinlock_t queue_spinlock;
 } __attribute__((aligned(128)));
 
 extern struct queue_list_s queue_list;
@@ -100,7 +100,7 @@ static inline void __calc_relative_tv(uint32_t * const tv_sec, int32_t * const t
     tmp_sec -= queue_list.rel_sec;
     tmp_usec -= queue_list.rel_usec;
     if(tmp_usec < 0){
-        (tmp_sec)--;
+        tmp_sec--;
         tmp_usec += 1000000;
     }
 

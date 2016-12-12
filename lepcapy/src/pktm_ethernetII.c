@@ -106,12 +106,12 @@ void pktm_ether_exit(struct pktm_object_s * const pktm){
 static int pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const prot_buf, const ssize_t prot_len, void *dummy){
     struct pktm_ether_s *eth_pktm = NULL;
 
-    if(!(pktm && prot_buf && prot_len)){
+    if(LEPCAPY_EXPECT_F(!(pktm && prot_buf && prot_len))){
         raise_except(ERR_NULL(pktm|prot_buf|prot_len), -EINVAL);
         return -EINVAL;
     }
 
-    if(!(pktm->__init)){
+    if(LEPCAPY_EXPECT_F(!(pktm->__init))){
         raise_except(ERR_INVAL(__init), -EPMINIT);
         return -EPMINIT;
     }
@@ -123,7 +123,7 @@ static int pktm_ether_send(struct pktm_object_s * const pktm, uint8_t * const pr
         return -EJFRAME;
     }
 
-    if(sendto(eth_pktm->sd, prot_buf, prot_len, 0, (struct sockaddr *)&eth_pktm->tx_addr, sizeof(struct sockaddr_ll)) < prot_len){
+    if(LEPCAPY_EXPECT_F(sendto(eth_pktm->sd, prot_buf, prot_len, 0, (struct sockaddr *)&eth_pktm->tx_addr, sizeof(struct sockaddr_ll)) < prot_len)){
         raise_except(ERR_CALL_LIBC(sendto), -ETRANS);
         return -ETRANS;
     }

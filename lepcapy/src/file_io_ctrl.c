@@ -81,10 +81,6 @@ void *__thread_file_io(void *file_ptr){
 
 
 inline int __thread_file_enqueue(FILE *fp){
-    /*
-     * TODO
-     *  Change Spinloick model to CAS(Compare_And_Set) model
-     */
     int err_code = SUCCESS;
     struct queue_node_s tmp_node;
 
@@ -116,21 +112,21 @@ inline int __thread_file_enqueue(FILE *fp){
     __calc_relative_tv(&(tmp_node.pcaprec_info.tv_sec), &(tmp_node.pcaprec_info.tv_usec));
 
 #if defined(__LEPCAPY_ARCH_X86__)
-    printf("[%lu]%u\n", file_io_cnt, queue_current_size());
     while(1){
-        if(queue_current_size() < MAX_QUEUE_SIZE){
+        if(queue_current_size() < (MAX_QUEUE_SIZE -1)){
             tmp_rear = queue_idx_rear();
             if(atomic32_cmpxchg(&queue_list.rear, tmp_rear, queue_round_tail(tmp_rear + 1)))
                 break;
         }
+        usleep(1);
     }
-    __fastcpy_aligned32_wcmem(queue_elem(tmp_rear), tmp_node);
+    __fastcpy_aligned32_enqueue(queue_elem(tmp_rear), tmp_node);
     atomic32_inc(&queue_elem_cnt());
     file_io_cnt++;
 #else
     while(queue_round_tail((queue_list.rear + 1)) == queue_list.front);
     lock_queue_spinlock();
-    __fastcpy_aligned32_wcmem(queue_elem_rear(), tmp_node);
+    __fastcpy_aligned32_enqueue(queue_elem_rear(), tmp_node);
     queue_list.rear = queue_round_tail(queue_list.rear + 1);
     unlock_queue_spinlock();
     file_io_cnt++;
