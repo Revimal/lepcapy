@@ -148,56 +148,56 @@ __attribute__((always_inline)) static inline int atomic32_cmpxchg(atomic32_t *at
                              "vmovdqa %%ymm0, %0"\
                              :"+m" (dest)\
                              :"m" (src)\
-                             :"%ymm0");
+                             :"%ymm0", "memory");
 
     #define __fastcpy_aligned32_wcmem(dest, src)\
         __asm__ __volatile__("vmovntdqa %1, %%ymm0;"\
                              "vmovntdq %%ymm0, %0"\
                              :"+m" (dest)\
                              :"m" (src)\
-                             :"%ymm0");
+                             :"%ymm0", "memory");
 
     #define __fastcpy_aligned32_enqueue(dest, src)\
         __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
                              "vmovntdq %%ymm0, %0"\
                              :"+m" (dest)\
                              :"m" (src)\
-                             :"%ymm0");
+                             :"%ymm0", "memory");
 
     #define __fastcpy_aligned32_dequeue(dest, src)\
         __asm__ __volatile__("vmovntdqa %1, %%ymm0;"\
                              "vmovdqa %%ymm0, %0"\
                              :"+m" (dest)\
                              :"m" (src)\
-                             :"%ymm0");
+                             :"%ymm0", "memory");
 #elif defined(__AVX__)
     #define __fastcpy_aligned32(dest, src)\
          __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
                               "vmovdqa %%ymm0, %0"\
                               :"+m" (dest)\
                               :"m" (src)\
-                              :"%ymm0");
+                              :"%ymm0", "memory");
 
      #define __fastcpy_aligned32_wcmem(dest, src)\
          __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
                               "vmovdqa %%ymm0, %0"\
                               :"+m" (dest)\
                               :"m" (src)\
-                              :"%ymm0");
+                              :"%ymm0", "memory");
 
      #define __fastcpy_aligned32_enqueue(dest, src)\
          __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
                               "vmovdqa %%ymm0, %0"\
                               :"+m" (dest)\
                               :"m" (src)\
-                              :"%ymm0");
+                              :"%ymm0", "memory");
 
      #define __fastcpy_aligned32_dequeue(dest, src)\
          __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
                               "vmovdqa %%ymm0, %0"\
                               :"+m" (dest)\
                               :"m" (src)\
-                              :"%ymm0");
+                              :"%ymm0", "memory");
 #else
     #include <string.h>
 
