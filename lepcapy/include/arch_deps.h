@@ -213,6 +213,6 @@ __attribute__((always_inline)) static inline int atomic32_cmpxchg(atomic32_t *at
     #define __fastcpy_aligned32_dequeue(dest, src)\
         memcpy(&dest, &src, 32);
 
-#endif
-#endif //__LEPCAPY_ARCH_OPTS__
+#endif //__AVX2__ || __AVX__
+#endif //__LEPCAPY_ARCH_X86__ [defined(__amd64__) || defined(__x86_64__) || defined(__i386__) || defined(_X86_)]
 #endif //LEPCAPY_ARCH_DEPS_H
