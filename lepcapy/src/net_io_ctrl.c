@@ -104,14 +104,14 @@ inline int __thread_net_dequeue(){
 #if defined(__LEPCAPY_ARCH_X86__)
     uint32_t tmp_front;
 
-    if(!queue_current_size())
+    if(LEPCAPY_EXPECT_F(!queue_current_size()))
         return -EQUEUE;
 
     tmp_front = queue_idx_front();
     __fastcpy_aligned32_dequeue(tmp_node, queue_elem(tmp_front));
 #else
     lock_queue_spinlock();
-    if(queue_list.front == queue_list.rear){
+    if(LEPCAPY_EXPECT_F(queue_list.front == queue_list.rear){
         unlock_queue_spinlock();
         return -EQUEUE;
     }
@@ -121,15 +121,15 @@ inline int __thread_net_dequeue(){
 #endif
     __nwait(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
 
-    if((err_code = ether_operations.pkt_send(p_pktm, tmp_node.pcaprec_buf,
-             tmp_node.pcaprec_info.inc_len, NULL))){
+    if(LEPCAPY_EXPECT_F((err_code = ether_operations.pkt_send(p_pktm, tmp_node.pcaprec_buf,
+             tmp_node.pcaprec_info.inc_len, NULL)))){
         raise_except(ERR_CALL_PKTM(ether, pkt_send), err_code);
         return err_code;
     }
 
 #if defined(__LEPCAPY_ARCH_X86__)
     free_ptr(tmp_node.pcaprec_buf);
-    if(LEPCAPY_EXPECT_F(!atomic32_cmpxchg(&queue_list.front, tmp_front, queue_round_tail(tmp_front + 1))))
+    if(!atomic32_cmpxchg(&queue_list.front, tmp_front, queue_round_tail(tmp_front + 1)))
         return -ENQUEUE;
     atomic32_dec(&queue_elem_cnt());
 #else

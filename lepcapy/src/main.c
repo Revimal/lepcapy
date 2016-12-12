@@ -8,12 +8,6 @@
 
 #include <sys/mman.h>
 
-static struct{
-    unsigned long phys_core;
-    unsigned long virt_core;
-    unsigned long *virt_phys;
-}core_info;
-
 static inline void print_result(){
     printf("\n[*] Replay Result\n");
     printf("Total    : %10lupkts\n", thread_file_get_cnt() + thread_file_get_dropped());

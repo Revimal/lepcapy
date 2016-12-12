@@ -116,7 +116,7 @@ typedef struct {
                           : "+m" ((atomic_val)->cnt))
 
 __attribute__((always_inline)) static inline int atomic32_cmpxchg(atomic32_t *atomic_val, uint32_t old_val, uint32_t new_val){
-    register __volatile__ unsigned char __ret asm("al");
+    register unsigned char __ret asm("al");
     __volatile__ uint32_t *__ptr = (__volatile__ uint32_t *)&atomic_val->cnt;
 
     __asm__ __volatile__ (LOCK_PREFIX "cmpxchgl %2, %1"
@@ -170,6 +170,34 @@ __attribute__((always_inline)) static inline int atomic32_cmpxchg(atomic32_t *at
                              :"+m" (dest)\
                              :"m" (src)\
                              :"%ymm0");
+#elif defined(__AVX__)
+    #define __fastcpy_aligned32(dest, src)\
+         __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
+                              "vmovdqa %%ymm0, %0"\
+                              :"+m" (dest)\
+                              :"m" (src)\
+                              :"%ymm0");
+
+     #define __fastcpy_aligned32_wcmem(dest, src)\
+         __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
+                              "vmovdqa %%ymm0, %0"\
+                              :"+m" (dest)\
+                              :"m" (src)\
+                              :"%ymm0");
+
+     #define __fastcpy_aligned32_enqueue(dest, src)\
+         __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
+                              "vmovdqa %%ymm0, %0"\
+                              :"+m" (dest)\
+                              :"m" (src)\
+                              :"%ymm0");
+
+     #define __fastcpy_aligned32_dequeue(dest, src)\
+         __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
+                              "vmovdqa %%ymm0, %0"\
+                              :"+m" (dest)\
+                              :"m" (src)\
+                              :"%ymm0");
 #else
     #include <string.h>
 

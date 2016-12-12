@@ -100,7 +100,7 @@ static inline void __calc_relative_tv(uint32_t * const tv_sec, int32_t * const t
     tmp_sec -= queue_list.rel_sec;
     tmp_usec -= queue_list.rel_usec;
     if(tmp_usec < 0){
-        (tmp_sec)--;
+        tmp_sec--;
         tmp_usec += 1000000;
     }
 
