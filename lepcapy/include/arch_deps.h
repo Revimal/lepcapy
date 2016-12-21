@@ -49,15 +49,15 @@
                               : "+m" ((atomic_val)->cnt))
 
     __attribute__((always_inline)) static inline int atomic64_cmpxchg(atomic64_t *atomic_val, uint64_t old_val, uint64_t new_val){
-        __volatile__ unsigned char __ret = 0;
+        register unsigned char __ret asm("al");
         __volatile__ uint64_t *__ptr = (__volatile__ uint64_t *)&atomic_val->cnt;
 
         __asm__ __volatile__ (LOCK_PREFIX "cmpxchgq %2, %1"
+                              "\t\nxor %%rax, %%rax"
                               "\t\nsete %0"
-                              : "=q" (__ret), "=m" (*__ptr)
+                              : "=a" (__ret), "=m" (*__ptr)
                               : "r" (new_val), "m" (*__ptr), "a" (old_val)
                               : "memory");
-
         return __ret;
     }
     #endif
