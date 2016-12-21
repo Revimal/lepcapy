@@ -1,16 +1,9 @@
 #include "exception_ctrl.h"
 #include "pcap_io.h"
 
-#if defined(__LEPCAPY_ARCH_X86_64__)
-FILE *__org_fp = NULL;
-unsigned char *__pcap_fbuf = NULL;
-off_t __pcap_foff = 0;
-size_t __pcap_fsz = 0;
-#endif
-
 static inline int fread_chk_eof(void *ptr, size_t size, size_t num, FILE *fp){
-    if(arch_fread(ptr, size, num, fp) != num){
-        if(arch_feof(fp))
+    if(fread(ptr, size, num, fp) != num){
+        if(feof(fp))
             return -__EEOF;
         else
             return -EFIO;
@@ -24,8 +17,8 @@ int load_pcap_format(FILE *fp, struct pcap_hdr_s *p_pcap_hdr){
         return -EINVAL;
     }
 
-    if(arch_fread(p_pcap_hdr, sizeof(struct pcap_hdr_s), 1, fp) != 1){
-        raise_except(ERR_CALL_ARCH(arch_fread), -EFIO);
+    if(fread(p_pcap_hdr, sizeof(struct pcap_hdr_s), 1, fp) != 1){
+        raise_except(ERR_CALL_LIBC(fread), -EFIO);
         return -EFIO;
     }
 
@@ -85,8 +78,8 @@ int load_pcap_rechdr(FILE *fp, struct pcaprec_hdr_s *p_pcap_rechdr, uint32_t max
         return -EOVRFLW;
     }
 
-    if(arch_fseek(fp, p_pcap_rechdr->inc_len, SEEK_CUR)){
-        raise_except(ERR_CALL_ARCH(arch_fseek), -EFIO);
+    if(fseek(fp, p_pcap_rechdr->inc_len, SEEK_CUR)){
+        raise_except(ERR_CALL_LIBC(fseek), -EFIO);
         return -EFIO;
     }
 
@@ -106,8 +99,8 @@ int load_pcap_recdata(FILE *fp, pcaprec_data **p_pcap_recdata, uint32_t cnt){
         return err_code;
     }
 
-    if(arch_fseek(fp, sizeof(struct pcaprec_hdr_s), SEEK_CUR)){
-        raise_except(ERR_CALL_ARCH(arch_fseek), -EFIO);
+    if(fseek(fp, sizeof(struct pcaprec_hdr_s), SEEK_CUR)){
+        raise_except(ERR_CALL_LIBC(fseek), -EFIO);
         return -EFIO;
     }
 
@@ -137,8 +130,8 @@ int load_pcap_recdata_pure(FILE *fp, pcaprec_data **p_pcap_recdata, uint32_t cnt
         return -EINVAL;
     }
 
-    if(arch_fread(*p_pcap_recdata, 1, cnt, fp) != cnt){
-        raise_except(ERR_CALL_ARCH(arch_fread), -EFIO);
+    if(fread(*p_pcap_recdata, 1, cnt, fp) != cnt){
+        raise_except(ERR_CALL_LIBC(fread), -EFIO);
         free_ptr(p_pcap_recdata);
         return -EFIO;
     }

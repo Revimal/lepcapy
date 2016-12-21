@@ -145,8 +145,8 @@ int __file_io_init(FILE *fp){
     struct pcap_hdr_s tmp_pcaphdr;
     struct pcaprec_hdr_s tmp_rechdr;
 
-    if(arch_fseek(fp, 0, SEEK_SET)){
-        raise_except(ERR_CALL_ARCH(arch_fseek), -EFIO);
+    if(fseek(fp, 0, SEEK_SET)){
+        raise_except(ERR_CALL_LIBC(fseek), -EFIO);
         return -EFIO;
     }
 
@@ -162,8 +162,8 @@ int __file_io_init(FILE *fp){
         return err_code;
     }
 
-    if(arch_fseek(fp, -sizeof(struct pcaprec_hdr_s), SEEK_CUR)){
-        raise_except(ERR_CALL_ARCH(arch_fseek), -EFIO);
+    if(fseek(fp, -sizeof(struct pcaprec_hdr_s), SEEK_CUR)){
+        raise_except(ERR_CALL_LIBC(fseek), -EFIO);
         return -EFIO;
     }
 

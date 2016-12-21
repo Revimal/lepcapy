@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
         goto out_mlockall;
     }
 
-    if(!(fp = arch_fopen(argv[1], "rb"))){
-        raise_except(ERR_CALL_ARCH(arch_fopen), -ENULL);
+    if(!(fp = fopen(argv[1], "rb"))){
+        raise_except(ERR_CALL_LIBC(fopen), -ENULL);
         err_code = -ENULL;
         goto out_file;
     }
@@ -93,8 +93,8 @@ int main(int argc, char *argv[])
     free_pktm(p_pktm);
 
     out_file:
-    if(arch_fclose(fp))
-        raise_except(ERR_CALL_ARCH(arch_fclose), -EFIO);
+    if(fclose(fp))
+        raise_except(ERR_CALL_LIBC(fclose), -EFIO);
 
     out_mlockall:
     munlockall();
