@@ -2,8 +2,9 @@
 #define LEPCAPY_ARCH_DEPS_H
 
 #if defined(__amd64__) || defined(__x86_64__) || defined(__i386__) || defined(_X86_)
-
     #include <stdint.h>
+    #include <string.h>
+    #undef __LEPCAPY_ARCH_X86__
     #define __LEPCAPY_ARCH_X86__
 
     /*
@@ -11,11 +12,12 @@
      */
     #define LOCK_PREFIX "\n\tlock; "
 
-
+    #if defined(__amd64__) || defined(__x86_64__)
+    #undef __LEPCAPY_ARCH_X86_64__
+    #define __LEPCAPY_ARCH_X86_64__
     /*
      * x86 Atomic_64bit
      */
-    #if defined(__amd64__) || defined(__x86_64__)
     typedef struct {
         uint64_t cnt;
     }atomic64_t;
@@ -106,81 +108,11 @@
         return __ret;
     }
 
-
     /*
-     * Arch-deps optimized features
+     * Deprecated custom AVX features
      */
-    #if defined(__AVX2__)
-       #define __fastcpy_aligned32(dest, src)\
-            __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
-                                 "vmovdqa %%ymm0, %0"\
-                                 :"+m" (dest)\
-                                 :"m" (src)\
-                                 :"%ymm0", "memory");
+    #define __fastcpy_aligned32(dest, src)\
+        memcpy(&dest, &src, 32);
 
-        #define __fastcpy_aligned32_wcmem(dest, src)\
-            __asm__ __volatile__("vmovntdqa %1, %%ymm0;"\
-                                 "vmovntdq %%ymm0, %0"\
-                                 :"+m" (dest)\
-                                 :"m" (src)\
-                                 :"%ymm0", "memory");
-
-        #define __fastcpy_aligned32_enqueue(dest, src)\
-            __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
-                                 "vmovntdq %%ymm0, %0"\
-                                 :"+m" (dest)\
-                                 :"m" (src)\
-                                 :"%ymm0", "memory");
-
-        #define __fastcpy_aligned32_dequeue(dest, src)\
-            __asm__ __volatile__("vmovntdqa %1, %%ymm0;"\
-                                 "vmovdqa %%ymm0, %0"\
-                                 :"+m" (dest)\
-                                 :"m" (src)\
-                                 :"%ymm0", "memory");
-    #elif defined(__AVX__)
-        #define __fastcpy_aligned32(dest, src)\
-             __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
-                                  "vmovdqa %%ymm0, %0"\
-                                  :"+m" (dest)\
-                                  :"m" (src)\
-                                  :"%ymm0", "memory");
-
-         #define __fastcpy_aligned32_wcmem(dest, src)\
-             __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
-                                  "vmovdqa %%ymm0, %0"\
-                                  :"+m" (dest)\
-                                  :"m" (src)\
-                                  :"%ymm0", "memory");
-
-         #define __fastcpy_aligned32_enqueue(dest, src)\
-             __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
-                                  "vmovdqa %%ymm0, %0"\
-                                  :"+m" (dest)\
-                                  :"m" (src)\
-                                  :"%ymm0", "memory");
-
-         #define __fastcpy_aligned32_dequeue(dest, src)\
-             __asm__ __volatile__("vmovdqa %1, %%ymm0;"\
-                                  "vmovdqa %%ymm0, %0"\
-                                  :"+m" (dest)\
-                                  :"m" (src)\
-                                  :"%ymm0", "memory");
-    #else
-        #include <string.h>
-
-        #define __fastcpy_aligned32(dest, src)\
-            memcpy(&dest, &src, 32);
-
-        #define __fastcpy_aligned32_wcmem(dest, src)\
-            memcpy(&dest, &src, 32);
-
-        #define __fastcpy_aligned32_enqueue(dest, src)\
-            memcpy(&dest, &src, 32);
-
-        #define __fastcpy_aligned32_dequeue(dest, src)\
-            memcpy(&dest, &src, 32);
-
-    #endif //__AVX2__ || __AVX__
 #endif //__LEPCAPY_ARCH_X86__ [defined(__amd64__) || defined(__x86_64__) || defined(__i386__) || defined(_X86_)]
 #endif //LEPCAPY_ARCH_DEPS_H

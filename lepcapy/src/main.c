@@ -33,26 +33,28 @@ int main(int argc, char *argv[])
     strncpy(env_pktm.if_name, argv[2], IFNAMSIZ - 1);
     if((err_code = ipv4_parse_str(argv[3], &(env_pktm.ipv4_addr.daddr)))){
         raise_except(ERR_CALL(ipv4_parse_str), err_code);
-        return err_code;
+        goto out_mlockall;
     }
 
-    if(!(fp = fopen(argv[1], "rb"))){
-        raise_except(ERR_CALL_LIBC(fopen), -ENULL);
-        return -ENULL;
+    if(!(fp = arch_fopen(argv[1], "rb"))){
+        raise_except(ERR_CALL_ARCH(arch_fopen), -ENULL);
+        err_code = -ENULL;
+        goto out_file;
     }
 
     //  TODO : Add .so ldr for custom toolkit
 
     if((err_code = load_pcap_format(fp, &p_pcap_hdr))){
         raise_except(ERR_CALL(load_pcap_format), err_code);
-        goto out;
+        goto out_file;
     }
 
     printf("PCAP Version : %d.%d\n", p_pcap_hdr.version_major, p_pcap_hdr.version_minor);
 
     if(p_pcap_hdr.network != 1){
         raise_except(ERR_PROTO(not_ether, network), -EINVPF);
-        return -EINVPF;
+        err_code = -EINVPF;
+        goto out_file;
     }
 
     __debug__chkpoint(routine_start);
@@ -89,8 +91,12 @@ int main(int argc, char *argv[])
     out:
     __debug__chkpoint(clean);
     free_pktm(p_pktm);
-    fclose(fp);
 
+    out_file:
+    if(arch_fclose(fp))
+        raise_except(ERR_CALL_ARCH(arch_fclose), -EFIO);
+
+    out_mlockall:
     munlockall();
     return err_code;
 }

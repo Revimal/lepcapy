@@ -10,6 +10,7 @@
 #define ERR_CALL(_at) "call_<"#_at">"
 #define ERR_CALL_MACRO(_at) "call_[macro]_<"#_at">"
 #define ERR_CALL_LIBC(_at) "call_[libc]_<"#_at">"
+#define ERR_CALL_ARCH(_at) "call_[arch]_<"#_at">"
 #define ERR_CALL_INTERNAL(_at) "call_[internal]_<"#_at">"
 #define ERR_CALL_PKTM(_pktm, _at) "call_[pktm:"#_pktm"]_<"#_at">"
 #define ERR_CALL_PROTO(_proto, _at) "call_[proto:"#_proto"]_<"#_at">"

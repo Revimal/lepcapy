@@ -23,7 +23,7 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
     STRING(REGEX REPLACE "^.*(avx2).*$" "\\1" ARCH_OPTS ${CPUINFO})
     STRING(COMPARE EQUAL "avx2" "${ARCH_OPTS}" AVX2_TRUE)
     IF(AVX2_TRUE)
-        SET(AVX_OPTIMIZATION "-march=core-avx2 -mavx2 -mavx")
+        SET(AVX_OPTIMIZATION "-march=core-avx2 -mavx2")
     ENDIF (AVX2_TRUE)
 
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall ${AVX_OPTIMIZATION}")

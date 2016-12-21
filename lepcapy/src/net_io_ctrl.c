@@ -108,7 +108,7 @@ inline int __thread_net_dequeue(){
         return -EQUEUE;
 
     tmp_front = queue_idx_front();
-    __fastcpy_aligned32_dequeue(tmp_node, queue_elem(tmp_front));
+    __fastcpy_aligned32(tmp_node, queue_elem(tmp_front));
 #else
     lock_queue_spinlock();
     if(LEPCAPY_EXPECT_F(queue_list.front == queue_list.rear){
@@ -117,7 +117,7 @@ inline int __thread_net_dequeue(){
     }
     unlock_queue_spinlock();
 
-    __fastcpy_aligned32_dequeue(tmp_node, queue_elem_front());
+    __fastcpy_aligned32(tmp_node, queue_elem_front());
 #endif
     __nwait(tmp_node.pcaprec_info.tv_sec, tmp_node.pcaprec_info.tv_usec);
 

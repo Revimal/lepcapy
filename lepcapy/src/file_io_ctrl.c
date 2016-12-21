@@ -120,13 +120,13 @@ inline int __thread_file_enqueue(FILE *fp){
         }
         usleep(1);
     }
-    __fastcpy_aligned32_enqueue(queue_elem(tmp_rear), tmp_node);
+    __fastcpy_aligned32(queue_elem(tmp_rear), tmp_node);
     atomic32_inc(&queue_elem_cnt());
     file_io_cnt++;
 #else
     while(queue_round_tail((queue_list.rear + 1)) == queue_list.front);
     lock_queue_spinlock();
-    __fastcpy_aligned32_enqueue(queue_elem_rear(), tmp_node);
+    __fastcpy_aligned32(queue_elem_rear(), tmp_node);
     queue_list.rear = queue_round_tail(queue_list.rear + 1);
     unlock_queue_spinlock();
     file_io_cnt++;
@@ -145,7 +145,10 @@ int __file_io_init(FILE *fp){
     struct pcap_hdr_s tmp_pcaphdr;
     struct pcaprec_hdr_s tmp_rechdr;
 
-    fseek(fp, 0, SEEK_SET);
+    if(arch_fseek(fp, 0, SEEK_SET)){
+        raise_except(ERR_CALL_ARCH(arch_fseek), -EFIO);
+        return -EFIO;
+    }
 
     if((err_code = load_pcap_format(fp, &tmp_pcaphdr))){
         raise_except(ERR_CALL(load_pcap_format), err_code);
@@ -159,7 +162,10 @@ int __file_io_init(FILE *fp){
         return err_code;
     }
 
-    fseek(fp, -sizeof(struct pcaprec_hdr_s), SEEK_CUR);
+    if(arch_fseek(fp, -sizeof(struct pcaprec_hdr_s), SEEK_CUR)){
+        raise_except(ERR_CALL_ARCH(arch_fseek), -EFIO);
+        return -EFIO;
+    }
 
     __set_relative_tv(tmp_rechdr.tv_sec, tmp_rechdr.tv_usec);
 
