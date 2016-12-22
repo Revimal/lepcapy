@@ -12,12 +12,6 @@ struct pktm_ether_s{
     int init;
     char eth_name[IFNAMSIZ];
     int sd;
-//    int offset;
-
-//    uint8_t* eth_buf;
-
-//    struct ether_header *eth_hdr;
-//    uint8_t *eth_payload;
 
     struct sockaddr_ll tx_addr;
 };

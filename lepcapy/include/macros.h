@@ -12,7 +12,6 @@
  */
 #define MAX_QUEUE_SIZE 8192
 #define NETIO_QUEUING_SIZE 4096
-#define MMAP_SIZE_MB_LIMIT 64
 
 /*
  * General Macros

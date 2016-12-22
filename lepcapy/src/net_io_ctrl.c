@@ -18,11 +18,6 @@ int thread_net_io(pthread_t *th_file){
         return -ENULL;
     }
 
-//    if(!io_interact_flag){
-//        raise_except(ERR_INTERACT(io_interact_flag), -EINTRACT);
-//        return -EINTRACT;
-//    }
-
     if(pthread_attr_init(&t_attr)){
         raise_except(ERR_CALL_LIBC(pthread_attr_init), -ETHREAD);
         return -ETHREAD;
