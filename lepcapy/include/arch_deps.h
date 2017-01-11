@@ -100,7 +100,7 @@
         __volatile__ uint32_t *__ptr = (__volatile__ uint32_t *)&atomic_val->cnt;
 
         __asm__ __volatile__ (LOCK_PREFIX "cmpxchgl %2, %1"
-                              "\t\nxor %%rax, %%rax"
+                              "\t\nxor %%eax, %%eax"
                               "\t\nsete %0"
                               : "=a" (__ret), "=m" (*__ptr)
                               : "r" (new_val), "m" (*__ptr), "a" (old_val)
