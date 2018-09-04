@@ -1,12 +1,5 @@
 language: c
 
-env:
-  global:
-   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
-   #   via the "travis encrypt" command using the project repo's public key
-   - secure: "sUGFkd9Xrf418bImQVZ635Zj/jgIClszgb6C3PZepUZ+Y6QEnFeLdb+Q7UcH7BJMpiHHLeHTEN3eERGhOBeNzscSHAXDWLyxvspauZdxuFR9xJ4RMvW0jPjFhVvWW5htcpLcPhWSYgbim35alxa3VyjIj4qQoD/bihz2durC8faOP4HMMXSuY4E8y+MgFTjlCCrlJC0gs6X8ssPx89/jLoINtoGL48svmNDe1KeTAJCYtqkacXU7V3QYr8+z3iRFZhQeF5r1yTah+XPLHoXTDuziDZQaBUFax23slkDBvzN/Vng8ndf+xBEzjPajhBpAN2uXCJwftrgKIzNsbO5SWr2T7ToqRV+GYhYL2ygnVtGV4AgbJOA6aAD11MUrPoYzcJa6UKYX7yINpQcjUjjG2mGJSVfkJ2IFRoKLXNQfuETU+HvH60g5Y72bPJy95QgEVShfCRYlQoVqYAVlXvmGIiADXrt0MaBsN37TEV4DrlyBdM2ENRKFu7PKxQiOYD5Hj6zJus+EdcozzG3JvK0/26bEtPcdc8a4WYxF2vH9J+wN1iodNsD5cXZMyRiPmCAsmbEuyj5sxvxmqEBnzbqAKub24J7T8W/soTSG6ezmPQ/M2jx5jXjE2LXhjD4Pbv201kYSllAvosojvs7Itb2oR/TNeHXmQloRLcxBq/o4JCI="
-
-
 matrix:
   include:
     - os: linux
@@ -19,14 +12,6 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - gcc-4.9
-        coverity_scan:
-          project:
-            name: "Revimal/lepcapy"
-            description: "Lepcapy, a tiny little pcap replay engine"
-          notification_email: seohho@gmail.com
-          build_command_prepend: ./.travis_configure.sh
-          build_command: make
-          branch_pattern: master
       env: COMPILER=gcc-4.9
 
     - os: linux
@@ -39,14 +24,6 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - gcc-5
-        coverity_scan:
-          project:
-            name: "Revimal/lepcapy"
-            description: "Lepcapy, a tiny little pcap replay engine"
-          notification_email: seohho@gmail.com
-          build_command_prepend: ./.travis_configure.sh
-          build_command: make
-          branch_pattern: master
       env: COMPILER=gcc-5
 
     - os: linux
@@ -60,14 +37,6 @@ matrix:
             - llvm-toolchain-precise-3.6
           packages:
             - clang-3.6
-        coverity_scan:
-          project:
-            name: "Revimal/lepcapy"
-            description: "Lepcapy, a tiny little pcap replay engine"
-          notification_email: seohho@gmail.com
-          build_command_prepend: ./.travis_configure.sh
-          build_command: make
-          branch_pattern: master
       env: COMPILER=clang-3.6
 
     - os: linux
@@ -81,19 +50,13 @@ matrix:
             - llvm-toolchain-precise-3.7
           packages:
             - clang-3.7
-        coverity_scan:
-          project:
-            name: "Revimal/lepcapy"
-            description: "Lepcapy, a tiny little pcap replay engine"
-          notification_email: seohho@gmail.com
-          build_command_prepend: ./.travis_configure.sh
-          build_command: make
-          branch_pattern: master
       env: COMPILER=clang-3.7
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update; fi
-  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 script:
-  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make ; fi
+  - mkdir build && cd build
+  - cmake -DCMAKE_C_COMPILER=$COMPILER ..
+  - make
+  - cd .. && rm -r ./build
